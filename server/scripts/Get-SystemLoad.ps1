@@ -10,7 +10,34 @@ if ($gpuSamples) {
   if ($gpu -gt 100) { $gpu = 100 }
 }
 
+Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+public class SdForeground {
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")]
+    public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+}
+"@
+
+# "Now Focused" is just whatever window currently has focus, not
+# specifically a game, which works without needing a game-name database.
+$activeApp = $null
+try {
+  $hwnd = [SdForeground]::GetForegroundWindow()
+  $procId = 0
+  [SdForeground]::GetWindowThreadProcessId($hwnd, [ref]$procId) | Out-Null
+  if ($procId -gt 0) {
+    $proc = Get-Process -Id $procId -ErrorAction SilentlyContinue
+    if ($proc) { $activeApp = "$($proc.ProcessName).exe" }
+  }
+} catch {
+  $activeApp = $null
+}
+
 [PSCustomObject]@{
   cpu = [math]::Round($cpu)
   gpu = [math]::Round($gpu)
+  activeApp = $activeApp
 } | ConvertTo-Json -Compress

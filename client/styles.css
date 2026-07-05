@@ -58,6 +58,11 @@ button:focus-visible {
 #pin-submit {
   font-size: 16px; font-weight: 600; padding: 13px 28px; border-radius: 14px; border: none;
   background: var(--azure); color: #0b0d12;
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+#pin-submit:active {
+  transform: scale(0.96);
+  opacity: 0.9;
 }
 #pin-error { color: #ff9a8b; min-height: 1.2em; font-size: 13px; }
 
@@ -190,7 +195,11 @@ button:focus-visible {
   transition: transform 0.1s ease;
 }
 .key.primary { color: var(--azure); }
-.key:active { transform: scale(0.9); }
+.key:active {
+  transform: scale(0.88);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
+}
 
 /* Volume row */
 .volume-row {
@@ -228,7 +237,11 @@ button:focus-visible {
   box-shadow: 0 10px 22px -10px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   transition: transform 0.12s ease;
 }
-.app:active .icon { transform: scale(0.92); }
+.app:active .icon {
+  transform: scale(0.92);
+  filter: brightness(1.35) saturate(1.15);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18), 0 4px 10px -6px rgba(0, 0, 0, 0.5);
+}
 
 .app.audio .icon { background: linear-gradient(155deg, #3d6fd8, #2a4ea8); }
 .app.controller .icon { background: linear-gradient(155deg, #3fb98a, #268266); }
@@ -251,6 +264,11 @@ button:focus-visible {
   display: inline-flex; align-items: center; gap: 4px;
   background: none; border: none; color: var(--azure);
   font-size: 15px; padding: 4px 0; margin-bottom: 14px;
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+.back:active {
+  opacity: 0.7;
+  transform: scale(0.97);
 }
 
 .detail-title { font-size: 22px; font-weight: 650; letter-spacing: -0.02em; margin: 0 0 16px; }
@@ -276,6 +294,11 @@ button:focus-visible {
   background: var(--glass-strong); border: none; border-radius: 14px;
   padding: 11px 14px; font-size: 13.5px; color: var(--ink); text-align: left;
   width: 100%;
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+.device:active {
+  transform: scale(0.98);
+  opacity: 0.85;
 }
 .device.current {
   background: rgba(91, 141, 239, 0.16);

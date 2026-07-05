@@ -179,3 +179,6 @@ if (urlToken) {
   document.getElementById('server-input').value = state.server;
   connect(state.server, state.token);
 }
+
+// Enable :active pseudo-class styles on iOS Safari and other touch devices
+document.body.addEventListener('touchstart', () => {}, { passive: true });

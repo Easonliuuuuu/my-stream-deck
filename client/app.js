@@ -137,9 +137,31 @@ function renderSystemLoad(load) {
   setText('active-app', load.activeApp || '—');
 }
 
+// Re-pairing on a home-screen install means retyping the 32-char hex token,
+// since iOS gives standalone web apps separate storage from Safari. Let
+// either field accept the full pairing URL (from the QR code / server
+// console) pasted in whole, and split it into host + token ourselves.
+function parsePairingUrl(text) {
+  try {
+    const url = new URL(text);
+    const token = url.searchParams.get('token');
+    if (!token) return null;
+    return { server: url.host, token };
+  } catch {
+    return null;
+  }
+}
+
+function readPinFields() {
+  const serverInput = document.getElementById('server-input');
+  const pinInput = document.getElementById('pin-input');
+  const parsed = parsePairingUrl(pinInput.value.trim()) || parsePairingUrl(serverInput.value.trim());
+  if (parsed) return parsed;
+  return { server: serverInput.value.trim(), token: pinInput.value.trim() };
+}
+
 document.getElementById('pin-submit').addEventListener('click', () => {
-  const server = document.getElementById('server-input').value.trim();
-  const token = document.getElementById('pin-input').value.trim();
+  const { server, token } = readPinFields();
   if (!server || !token) {
     document.getElementById('pin-error').textContent = 'Enter the PC address and pairing token';
     return;

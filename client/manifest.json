@@ -5,6 +5,6 @@
   "display": "fullscreen",
   "background_color": "#111111",
   "theme_color": "#111111",
-  "orientation": "portrait",
+  "orientation": "any",
   "icons": []
 }

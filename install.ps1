@@ -51,7 +51,11 @@ function Get-StreamDeckSource {
     if (Test-Path (Join-Path $installDir '.git')) {
         Write-Host "Updating existing install at $installDir..." -ForegroundColor Yellow
         Push-Location $installDir
-        git pull --ff-only
+        git fetch
+        git reset --hard @{u}
+        if ($LASTEXITCODE -ne 0) {
+            git reset --hard origin/main
+        }
         Pop-Location
         return
     }

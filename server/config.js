@@ -7,5 +7,6 @@ module.exports = {
     audioMs: 4000,
     nowPlayingMs: 1500,
     controllerMs: 20000,
+    systemLoadMs: 2500,
   },
 };

@@ -4,10 +4,12 @@ const { getAudioState, setAudioDevice } = require('./services/audioDevices');
 const { getNowPlaying } = require('./services/nowPlaying');
 const { sendMediaKey } = require('./services/mediaKeys');
 const { getControllerState } = require('./services/controllerBattery');
+const { launchApp } = require('./services/appLauncher');
+const { getSystemLoad } = require('./services/systemLoad');
 
 function attach(server) {
   const wss = new WebSocket.Server({ server });
-  const state = { audio: null, nowPlaying: null, controller: null };
+  const state = { audio: null, nowPlaying: null, controller: null, systemLoad: null };
 
   function broadcastCard(card) {
     const message = JSON.stringify({ type: 'state', card, payload: state[card] });
@@ -56,14 +58,28 @@ function attach(server) {
     }
   }
 
+  async function refreshSystemLoad() {
+    try {
+      const next = await getSystemLoad();
+      if (JSON.stringify(next) !== JSON.stringify(state.systemLoad)) {
+        state.systemLoad = next;
+        broadcastCard('systemLoad');
+      }
+    } catch (e) {
+      console.error('system load refresh failed:', e.message);
+    }
+  }
+
   const timers = [
     setInterval(refreshAudio, config.poll.audioMs),
     setInterval(refreshNowPlaying, config.poll.nowPlayingMs),
     setInterval(refreshController, config.poll.controllerMs),
+    setInterval(refreshSystemLoad, config.poll.systemLoadMs),
   ];
   refreshAudio();
   refreshNowPlaying();
   refreshController();
+  refreshSystemLoad();
 
   wss.on('connection', (ws) => {
     ws.authed = false;
@@ -98,6 +114,9 @@ function attach(server) {
           case 'setAudioDevice':
             await setAudioDevice(msg.id);
             await refreshAudio();
+            break;
+          case 'launchApp':
+            await launchApp(msg.appId);
             break;
           default:
             ws.send(JSON.stringify({ type: 'error', message: `Unknown command action: ${msg.action}` }));

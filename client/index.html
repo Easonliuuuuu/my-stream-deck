@@ -43,6 +43,14 @@
           </div>
         </div>
 
+        <div class="volume-row">
+          <button class="key" data-key="VolumeDown">−</button>
+          <button class="key" data-key="Mute">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9v6h4l5 4V5L7 9H3z"/><path d="M16 9l5 6M21 9l-5 6"/></svg>
+          </button>
+          <button class="key" data-key="VolumeUp">+</button>
+        </div>
+
         <div class="app-grid">
           <button class="app audio" data-nav="audio">
             <div class="icon">
@@ -57,6 +65,31 @@
             </div>
             <span class="lbl">Controller</span>
             <span class="sub" id="controller-summary">—</span>
+          </button>
+          <button class="app performance" data-nav="performance">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg>
+            </div>
+            <span class="lbl">Performance</span>
+            <span class="sub" id="performance-summary">—</span>
+          </button>
+          <button class="app spotify" data-launch="spotify">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 15V9"/><path d="M12 17V7"/><path d="M17 13v-2"/></svg>
+            </div>
+            <span class="lbl">Spotify</span>
+          </button>
+          <button class="app discord" data-launch="discord">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H10l-4 3.5V15H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>
+            </div>
+            <span class="lbl">Discord</span>
+          </button>
+          <button class="app steam" data-launch="steam">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>
+            </div>
+            <span class="lbl">Steam</span>
           </button>
         </div>
       </section>
@@ -88,6 +121,21 @@
           </div>
           <div class="d-row"><span class="k">Link</span><span class="v">Bluetooth</span></div>
           <div class="d-row"><span class="k">Device</span><span class="v">DualSense</span></div>
+        </div>
+      </section>
+
+      <section class="screen detail" data-id="performance">
+        <button class="back" data-nav="home">‹ Home</button>
+        <p class="detail-title">Performance</p>
+        <div class="card">
+          <div class="load-row">
+            <div class="load-label"><span class="k">CPU</span><span class="v" id="cpu-val">—</span></div>
+            <div class="load-bar"><div class="load-fill cpu" id="cpu-fill"></div></div>
+          </div>
+          <div class="load-row">
+            <div class="load-label"><span class="k">GPU</span><span class="v" id="gpu-val">—</span></div>
+            <div class="load-bar"><div class="load-fill gpu" id="gpu-fill"></div></div>
+          </div>
         </div>
       </section>
     </div>

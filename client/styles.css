@@ -36,6 +36,7 @@ button:focus-visible {
   position: fixed;
   inset: 0;
   z-index: -1;
+  pointer-events: none;
   background:
     radial-gradient(560px 420px at 18% 8%, rgba(91, 141, 239, 0.16), transparent 60%),
     radial-gradient(420px 360px at 90% 85%, rgba(89, 217, 163, 0.08), transparent 65%);
@@ -118,20 +119,25 @@ button:focus-visible {
   .screen { transition: none; }
 }
 
-.stack[data-screen="home"] .screen.home { transform: translateX(0); opacity: 1; }
-.stack[data-screen="home"] .screen.detail { transform: translateX(100%); opacity: 0; pointer-events: none; }
+/* Default: every detail screen sits off-screen to the right until it
+   becomes the active one — scales to any number of detail screens without
+   needing a rule per from/to pair. */
+.screen.detail { transform: translateX(100%); opacity: 0; pointer-events: none; }
 
-.stack[data-screen="audio"] .screen.home,
-.stack[data-screen="controller"] .screen.home {
+.stack[data-screen="home"] .screen.home { transform: translateX(0); opacity: 1; }
+
+.stack:not([data-screen="home"]) .screen.home {
   transform: translateX(-100%);
   opacity: 0;
   pointer-events: none;
 }
-.stack[data-screen="audio"] .screen[data-id="audio"] { transform: translateX(0); opacity: 1; }
-.stack[data-screen="controller"] .screen[data-id="controller"] { transform: translateX(0); opacity: 1; }
-.stack[data-screen="audio"] .screen[data-id="controller"],
-.stack[data-screen="controller"] .screen[data-id="audio"] {
-  transform: translateX(100%); opacity: 0; pointer-events: none;
+
+.stack[data-screen="audio"] .screen[data-id="audio"],
+.stack[data-screen="controller"] .screen[data-id="controller"],
+.stack[data-screen="performance"] .screen[data-id="performance"] {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Now playing strip */
@@ -177,6 +183,23 @@ button:focus-visible {
 .key.primary { color: var(--azure); }
 .key:active { transform: scale(0.9); }
 
+/* Volume row */
+.volume-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 18px;
+  padding: 10px 14px;
+  margin-bottom: 22px;
+}
+.volume-row .key { width: 30px; height: 30px; font-size: 20px; font-weight: 300; }
+.volume-row .key svg { width: 19px; height: 19px; stroke: var(--ink); }
+
 /* App icon grid */
 .app-grid {
   display: grid;
@@ -200,6 +223,10 @@ button:focus-visible {
 
 .app.audio .icon { background: linear-gradient(155deg, #3d6fd8, #2a4ea8); }
 .app.controller .icon { background: linear-gradient(155deg, #3fb98a, #268266); }
+.app.performance .icon { background: linear-gradient(155deg, #e2a23f, #b97a1e); }
+.app.spotify .icon { background: linear-gradient(155deg, #34c77b, #1f9a5c); }
+.app.discord .icon { background: linear-gradient(155deg, #6875f5, #4b5bd1); }
+.app.steam .icon { background: linear-gradient(155deg, #4a5563, #2b323c); }
 .app .icon svg { width: 28px; height: 28px; stroke: #fff; }
 
 .app .lbl { font-size: 12px; font-weight: 500; }
@@ -273,3 +300,20 @@ button:focus-visible {
 }
 .ring-lg .pct { font-size: 32px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .ring-lg .state { font-size: 11px; color: var(--ink-dim); margin-top: 2px; }
+
+/* Performance load bars */
+.load-row { margin-bottom: 20px; }
+.load-row:last-child { margin-bottom: 4px; }
+.load-label {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 13px; margin-bottom: 8px;
+}
+.load-label .k { color: var(--ink-dim); }
+.load-label .v { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 15px; }
+.load-bar { height: 10px; border-radius: 6px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.load-fill {
+  height: 100%; width: 0%; border-radius: 6px;
+  transition: width 0.5s ease;
+}
+.load-fill.cpu { background: var(--azure); }
+.load-fill.gpu { background: var(--mint); }

@@ -71,6 +71,7 @@ test('rejects an incorrect pairing token and does not send a snapshot', async (t
   mockPowerShell(t, {
     'Get-AudioDevices.ps1': { json: { output: {}, input: {}, outputs: [], inputs: [] } },
     'Get-NowPlaying.ps1': { json: {} },
+    'Get-SystemLoad.ps1': { json: { cpu: 0, gpu: 0 } },
   });
 
   const { port, close } = await startServer();
@@ -91,6 +92,7 @@ test('accepts the correct pairing token and sends a full snapshot', async (t) =>
       json: { output: { current: 'Speakers', id: 'out-1' }, input: { current: 'Mic', id: 'in-1' }, outputs: [], inputs: [] },
     },
     'Get-NowPlaying.ps1': { json: { title: 'Song', artist: 'Artist', album: null, isPlaying: true, art: null } },
+    'Get-SystemLoad.ps1': { json: { cpu: 12, gpu: 34 } },
   });
 
   const { port, close } = await startServer();
@@ -106,6 +108,7 @@ test('accepts the correct pairing token and sends a full snapshot', async (t) =>
   assert.equal(snapshot.payload.audio.output.current, 'Speakers');
   assert.equal(snapshot.payload.nowPlaying.title, 'Song');
   assert.equal(snapshot.payload.controller.connected, false); // no real DualSense in CI
+  assert.deepEqual(snapshot.payload.systemLoad, { cpu: 12, gpu: 34 });
 
   ws.close();
 });
@@ -114,6 +117,7 @@ test('ignores commands sent before authentication', async (t) => {
   mockPowerShell(t, {
     'Get-AudioDevices.ps1': { json: { output: {}, input: {}, outputs: [], inputs: [] } },
     'Get-NowPlaying.ps1': { json: {} },
+    'Get-SystemLoad.ps1': { json: { cpu: 0, gpu: 0 } },
   });
 
   const { port, close } = await startServer();
@@ -131,6 +135,7 @@ test('returns a clean error for an unknown message type without dropping the con
   mockPowerShell(t, {
     'Get-AudioDevices.ps1': { json: { output: {}, input: {}, outputs: [], inputs: [] } },
     'Get-NowPlaying.ps1': { json: {} },
+    'Get-SystemLoad.ps1': { json: { cpu: 0, gpu: 0 } },
   });
 
   const { port, close } = await startServer();
@@ -167,6 +172,7 @@ test('setAudioDevice command triggers Set-AudioDevice and broadcasts refreshed s
       return callback(null, JSON.stringify({ output: current, input: {}, outputs: [], inputs: [] }), '');
     }
     if (scriptName === 'Get-NowPlaying.ps1') return callback(null, '{}', '');
+    if (scriptName === 'Get-SystemLoad.ps1') return callback(null, '{"cpu":0,"gpu":0}', '');
     callback(new Error(`no mock configured for ${scriptName}`));
   });
 
@@ -183,6 +189,62 @@ test('setAudioDevice command triggers Set-AudioDevice and broadcasts refreshed s
 
   assert.equal(setAudioDeviceCalledWith, 'out-2');
   assert.equal(audioUpdate.payload.output.current, 'Headphones');
+
+  ws.close();
+});
+
+test('launchApp command triggers Launch-App.ps1 with the app\'s process name and path', async (t) => {
+  let launchArgs = null;
+  t.mock.method(cp, 'execFile', (_file, args, _opts, callback) => {
+    const scriptName = path.basename(args[args.indexOf('-File') + 1]);
+    if (scriptName === 'Launch-App.ps1') {
+      launchArgs = args;
+      return callback(null, '{"ok":true}', '');
+    }
+    if (scriptName === 'Get-AudioDevices.ps1') {
+      return callback(null, JSON.stringify({ output: {}, input: {}, outputs: [], inputs: [] }), '');
+    }
+    if (scriptName === 'Get-NowPlaying.ps1') return callback(null, '{}', '');
+    if (scriptName === 'Get-SystemLoad.ps1') return callback(null, '{"cpu":0,"gpu":0}', '');
+    callback(new Error(`no mock configured for ${scriptName}`));
+  });
+
+  const { port, close } = await startServer();
+  t.after(close);
+
+  const { ws, waitFor } = await connectClient(port);
+  ws.send(JSON.stringify({ type: 'auth', token: config.pairingToken }));
+  await waitFor((m) => m.type === 'auth');
+  await waitFor((m) => m.type === 'snapshot');
+
+  ws.send(JSON.stringify({ type: 'command', action: 'launchApp', appId: 'discord' }));
+  await new Promise((resolve) => setTimeout(resolve, 100));
+
+  assert.ok(launchArgs.includes('-ProcessName'));
+  assert.ok(launchArgs.includes('Discord'));
+  assert.ok(launchArgs.includes('--processStart Discord.exe'));
+
+  ws.close();
+});
+
+test('launchApp command with an unknown app id returns a clean error', async (t) => {
+  mockPowerShell(t, {
+    'Get-AudioDevices.ps1': { json: { output: {}, input: {}, outputs: [], inputs: [] } },
+    'Get-NowPlaying.ps1': { json: {} },
+    'Get-SystemLoad.ps1': { json: { cpu: 0, gpu: 0 } },
+  });
+
+  const { port, close } = await startServer();
+  t.after(close);
+
+  const { ws, waitFor } = await connectClient(port);
+  ws.send(JSON.stringify({ type: 'auth', token: config.pairingToken }));
+  await waitFor((m) => m.type === 'auth');
+  await waitFor((m) => m.type === 'snapshot');
+
+  ws.send(JSON.stringify({ type: 'command', action: 'launchApp', appId: 'nonexistent' }));
+  const errorReply = await waitFor((m) => m.type === 'error');
+  assert.match(errorReply.message, /Unknown app/);
 
   ws.close();
 });

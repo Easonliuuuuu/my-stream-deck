@@ -93,6 +93,14 @@ push to `main`/`dev` and every PR targeting them.
 **Branching:** work happens directly on `dev`. Changes reach `main` only via a
 pull request (branch-protected, requires CI to pass).
 
+## Customizing the app launcher tiles
+
+The Spotify/Discord/Steam tiles bring the app's window to the front if it's
+already running, or start it fresh otherwise. The install paths in
+`server/services/appLauncher.js` are just each app's common per-user default
+— if yours differs, or you want to add another app, edit the `APPS` object
+there (`processName` must match the real process name shown in Task Manager).
+
 ## Project layout
 
 ```

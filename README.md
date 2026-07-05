@@ -19,6 +19,20 @@ See `openspec/changes/stream-deck-mvp/` for the full proposal, specs, and design
 
 ## Setup
 
+**Quick install (Windows):** open PowerShell (no admin needed) and run:
+
+```powershell
+irm https://raw.githubusercontent.com/Easonliuuuuu/my-stream-deck/main/install.ps1 | iex
+```
+
+This installs Node.js and the `AudioDeviceCmdlets` module if they're missing,
+downloads the app to `%LOCALAPPDATA%\my-stream-deck`, and starts the server.
+Leave the PowerShell window open — closing it stops the server. Re-running the
+same command later updates to the latest version and restarts it.
+
+**Manual install:** if you'd rather do it yourself (or already have the repo
+cloned):
+
 ```powershell
 cd server
 npm install

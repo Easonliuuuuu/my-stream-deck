@@ -81,6 +81,9 @@ function renderNowPlaying(nowPlaying) {
   setText('track-artist', nowPlaying.artist || '—');
   const artUrl = nowPlaying.art ? `url(data:image/png;base64,${nowPlaying.art})` : '';
   document.querySelectorAll('.art').forEach((el) => { el.style.backgroundImage = artUrl; });
+  document.querySelectorAll('[data-key="PlayPause"]').forEach((el) => {
+    el.classList.toggle('is-playing', !!nowPlaying.isPlaying);
+  });
 }
 
 function renderDevicePicker(containerClass, devices, currentId, kind) {

@@ -40,9 +40,16 @@
               <div class="track-artist">—</div>
             </div>
             <div class="keys transport">
-              <button class="key" data-key="Prev">⏮</button>
-              <button class="key primary" data-key="PlayPause">⏯</button>
-              <button class="key" data-key="Next">⏭</button>
+              <button class="key" data-key="Prev">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+              </button>
+              <button class="key primary" data-key="PlayPause">
+                <svg class="icon-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                <svg class="icon-pause" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+              </button>
+              <button class="key" data-key="Next">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+              </button>
             </div>
           </div>
 
@@ -157,27 +164,35 @@
             <div class="track-artist">—</div>
           </div>
           <div class="keys now-keys">
-            <button class="key" data-key="Prev">⏮</button>
-            <button class="key primary" data-key="PlayPause">⏯</button>
-            <button class="key" data-key="Next">⏭</button>
+            <button class="key" data-key="Prev">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+            </button>
+            <button class="key primary" data-key="PlayPause">
+              <svg class="icon-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+              <svg class="icon-pause" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+            </button>
+            <button class="key" data-key="Next">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+            </button>
           </div>
         </div>
 
-        <div class="row-split">
-          <div class="perf-card">
-            <div class="stat-pair">
-              <div class="stat">
-                <span class="stat-label">CPU</span>
-                <span class="stat-value cpu cpu-val">—</span>
-              </div>
-              <div class="stat-divider"></div>
-              <div class="stat">
-                <span class="stat-label">GPU</span>
-                <span class="stat-value gpu gpu-val">—</span>
-              </div>
+        <div class="system-card">
+          <div class="sys-stat">
+            <div class="sys-stat-top">
+              <span class="stat-label">CPU</span>
+              <span class="stat-value cpu cpu-val">—</span>
             </div>
+            <div class="load-bar"><div class="load-fill cpu cpu-fill"></div></div>
           </div>
-          <div class="active-card">
+          <div class="sys-stat">
+            <div class="sys-stat-top">
+              <span class="stat-label">GPU</span>
+              <span class="stat-value gpu gpu-val">—</span>
+            </div>
+            <div class="load-bar"><div class="load-fill gpu gpu-fill"></div></div>
+          </div>
+          <div class="sys-focus">
             <span class="k">Now Focused</span>
             <span class="v active-app">—</span>
           </div>

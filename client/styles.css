@@ -1,13 +1,28 @@
 :root {
   --void: #0b0d12;
-  --glass: rgba(255, 255, 255, 0.055);
-  --glass-strong: rgba(255, 255, 255, 0.09);
   --glass-border: rgba(255, 255, 255, 0.10);
   --ink: #eef1f5;
   --ink-dim: #8d96a3;
   --azure: #5b8def;
   --mint: #59d9a3;
   --warn: #e2a23f;
+
+  /* Hardware-panel surfaces: readouts sit flush in an inset "screen" cut
+     into the bezel, keys are a separate raised surface lit from behind. */
+  --screen-bg: #0d0f15;
+  --screen-border: rgba(255, 255, 255, 0.07);
+  --key-face: #15181f;
+  --key-edge: rgba(255, 255, 255, 0.06);
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Per-key backlight colors, standing in for the RGB under-glow of a
+     physical macropad key. */
+  --glow-audio: #5b8def;
+  --glow-controller: #59d9a3;
+  --glow-performance: #e2a23f;
+  --glow-spotify: #3ddc84;
+  --glow-discord: #7b88f5;
+  --glow-steam: #9fb0c3;
 }
 
 * { box-sizing: border-box; }
@@ -50,8 +65,9 @@ button:focus-visible {
 }
 #pin-screen h1 { font-size: 20px; font-weight: 650; letter-spacing: -0.02em; margin-bottom: 4px; }
 #pin-screen input {
-  font-size: 16px; padding: 13px 14px; border-radius: 14px; border: 1px solid var(--glass-border);
-  background: var(--glass); color: var(--ink);
+  font-size: 16px; padding: 13px 14px; border-radius: 14px; border: 1px solid var(--screen-border);
+  background: var(--screen-bg); color: var(--ink);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.45);
   width: 80%; max-width: 320px; text-align: center;
 }
 #pin-screen input::placeholder { color: var(--ink-dim); }
@@ -167,10 +183,9 @@ button:focus-visible {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: var(--glass);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--screen-bg);
+  border: 1px solid var(--screen-border);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.45);
   border-radius: 16px;
   padding: 8px 12px;
   margin-bottom: 14px;
@@ -215,10 +230,9 @@ button:focus-visible {
   align-items: center;
   justify-content: center;
   gap: 28px;
-  background: var(--glass);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--screen-bg);
+  border: 1px solid var(--screen-border);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.45);
   border-radius: 16px;
   padding: 8px 14px;
   margin-bottom: 14px;
@@ -243,30 +257,63 @@ button:focus-visible {
 
 .app .icon {
   width: 56px; height: 56px; border-radius: 15px;
+  background: var(--key-face);
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 18px -7px var(--glow),
+    inset 0 1px 0 var(--key-edge),
+    inset 0 -12px 16px -13px rgba(0, 0, 0, 0.55),
+    0 8px 18px -10px rgba(0, 0, 0, 0.55);
   transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
 }
 .app:active .icon {
-  transform: scale(0.92);
-  filter: brightness(1.35) saturate(1.15);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18), 0 4px 10px -6px rgba(0, 0, 0, 0.5);
+  transform: translateY(1px) scale(0.96);
+  filter: brightness(1.25);
+  box-shadow:
+    0 0 26px -3px var(--glow),
+    inset 0 1px 0 var(--key-edge),
+    inset 0 -8px 14px -13px rgba(0, 0, 0, 0.5);
 }
 
-.app.audio .icon { background: linear-gradient(155deg, #3d6fd8, #2a4ea8); }
-.app.controller .icon { background: linear-gradient(155deg, #3fb98a, #268266); }
-.app.performance .icon { background: linear-gradient(155deg, #e2a23f, #b97a1e); }
-.app.spotify .icon { background: linear-gradient(155deg, #34c77b, #1f9a5c); }
-.app.discord .icon { background: linear-gradient(155deg, #6875f5, #4b5bd1); }
-.app.steam .icon { background: linear-gradient(155deg, #4a5563, #2b323c); }
-.app .icon svg { width: 24px; height: 24px; stroke: #fff; }
+.app.audio .icon { --glow: var(--glow-audio); }
+.app.controller .icon { --glow: var(--glow-controller); }
+.app.performance .icon { --glow: var(--glow-performance); }
+.app.spotify .icon { --glow: var(--glow-spotify); }
+.app.discord .icon { --glow: var(--glow-discord); }
+.app.steam .icon { --glow: var(--glow-steam); }
+.app .icon svg { width: 24px; height: 24px; stroke: var(--glow); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--glow) 60%, transparent)); }
 
-.app .lbl { font-size: 11px; font-weight: 500; }
+.app .lbl {
+  font-size: 10px; font-weight: 600; color: var(--ink-dim);
+  text-transform: uppercase; letter-spacing: 0.07em;
+}
 .app .sub {
   font-size: 10.5px; color: var(--ink-dim);
   font-variant-numeric: tabular-nums;
+  font-family: var(--mono);
   max-width: 100%;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* Boot light-up: keys fade in from dark in a quick staggered sequence,
+   like a physical Stream Deck powering on, instead of a flat reveal. */
+@keyframes key-boot {
+  0% { opacity: 0; transform: scale(0.85); filter: brightness(0.3); }
+  60% { opacity: 1; transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); filter: brightness(1); }
+}
+.app .icon, .tile .icon {
+  animation: key-boot 0.4s cubic-bezier(.2, .9, .3, 1.2) backwards;
+}
+.app:nth-child(1) .icon, .tile:nth-child(1) .icon { animation-delay: 0ms; }
+.app:nth-child(2) .icon, .tile:nth-child(2) .icon { animation-delay: 40ms; }
+.app:nth-child(3) .icon, .tile:nth-child(3) .icon { animation-delay: 80ms; }
+.app:nth-child(4) .icon, .tile:nth-child(4) .icon { animation-delay: 120ms; }
+.app:nth-child(5) .icon, .tile:nth-child(5) .icon { animation-delay: 160ms; }
+.app:nth-child(6) .icon, .tile:nth-child(6) .icon { animation-delay: 200ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .app .icon, .tile .icon { animation: none; }
 }
 
 /* Detail screens */
@@ -284,10 +331,9 @@ button:focus-visible {
 .detail-title { font-size: 22px; font-weight: 650; letter-spacing: -0.02em; margin: 0 0 16px; }
 
 .card {
-  background: var(--glass);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--screen-bg);
+  border: 1px solid var(--screen-border);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.45);
   border-radius: 20px;
   padding: 14px 16px 16px;
   margin-bottom: 14px;
@@ -301,7 +347,7 @@ button:focus-visible {
 
 .device {
   display: flex; align-items: center; justify-content: space-between;
-  background: var(--glass-strong); border: none; border-radius: 14px;
+  background: var(--key-face); border: none; border-radius: 14px;
   padding: 11px 14px; font-size: 13.5px; color: var(--ink); text-align: left;
   width: 100%;
   transition: transform 0.1s ease, opacity 0.1s ease;
@@ -340,7 +386,7 @@ button:focus-visible {
   width: 112px; height: 112px; border-radius: 50%; background: #10131a;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
-.ring-lg .pct { font-size: 32px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.ring-lg .pct { font-size: 32px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; font-family: var(--mono); }
 .ring-lg .state { font-size: 11px; color: var(--ink-dim); margin-top: 2px; }
 
 /* Performance load bars */
@@ -351,7 +397,7 @@ button:focus-visible {
   font-size: 13px; margin-bottom: 8px;
 }
 .load-label .k { color: var(--ink-dim); }
-.load-label .v { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 15px; }
+.load-label .v { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 15px; font-family: var(--mono); }
 .load-bar { height: 10px; border-radius: 6px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
 .load-fill {
   height: 100%; width: 0%; border-radius: 6px;
@@ -391,8 +437,8 @@ button:focus-visible {
 
   .now-card {
     display: flex; align-items: center; gap: 10px;
-    background: var(--glass); border: 1px solid var(--glass-border);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    background: var(--screen-bg); border: 1px solid var(--screen-border);
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.45);
     border-radius: 16px; padding: 9px 12px;
   }
   .art-xs { width: 42px; height: 42px; border-radius: 12px; flex: none; }
@@ -402,8 +448,8 @@ button:focus-visible {
   .row-split { display: flex; gap: 10px; flex: 1; min-height: 0; }
 
   .perf-card, .active-card {
-    background: var(--glass); border: 1px solid var(--glass-border);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    background: var(--screen-bg); border: 1px solid var(--screen-border);
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.45);
     border-radius: 16px;
   }
   .perf-card { flex: 1.3; display: flex; align-items: center; justify-content: center; }
@@ -411,7 +457,7 @@ button:focus-visible {
   .stat { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
   .stat-divider { width: 1px; align-self: stretch; margin: 14px 0; background: var(--glass-border); }
   .stat-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em; color: var(--ink-dim); }
-  .stat-value { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1; }
+  .stat-value { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1; font-family: var(--mono); }
   .stat-value.cpu { color: var(--azure); }
   .stat-value.gpu { color: var(--mint); }
 
@@ -440,30 +486,42 @@ button:focus-visible {
   .tile { background: none; border: none; color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
   .tile .icon {
     width: 100%; aspect-ratio: 1; max-height: 62px; border-radius: 15px;
+    background: var(--key-face);
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    box-shadow:
+      0 0 16px -7px var(--glow),
+      inset 0 1px 0 var(--key-edge),
+      inset 0 -10px 14px -12px rgba(0, 0, 0, 0.55),
+      0 8px 18px -10px rgba(0, 0, 0, 0.55);
     transition: transform 0.08s ease, filter 0.08s ease, box-shadow 0.08s ease;
   }
-  .tile .icon svg { width: 22px; height: 22px; stroke: #fff; }
-  .tile .lbl { font-size: 10.5px; font-weight: 500; transition: opacity 0.08s ease; }
+  .tile .icon svg { width: 22px; height: 22px; stroke: var(--glow); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--glow) 60%, transparent)); }
+  .tile .lbl {
+    font-size: 10px; font-weight: 600; color: var(--ink-dim);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    transition: opacity 0.08s ease;
+  }
   .tile:active .icon {
-    transform: scale(0.88);
-    filter: brightness(1.35) saturate(1.15);
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18), 0 4px 10px -6px rgba(0, 0, 0, 0.5);
+    transform: translateY(1px) scale(0.92);
+    filter: brightness(1.25);
+    box-shadow:
+      0 0 22px -3px var(--glow),
+      inset 0 1px 0 var(--key-edge),
+      inset 0 -6px 12px -12px rgba(0, 0, 0, 0.5);
   }
   .tile:active .lbl { opacity: 0.6; }
 
-  .tile.audio .icon { background: linear-gradient(155deg, #3d6fd8, #2a4ea8); }
-  .tile.controller .icon { background: linear-gradient(155deg, #3fb98a, #268266); }
-  .tile.spotify .icon { background: linear-gradient(155deg, #34c77b, #1f9a5c); }
-  .tile.discord .icon { background: linear-gradient(155deg, #6875f5, #4b5bd1); }
-  .tile.steam .icon { background: linear-gradient(155deg, #4a5563, #2b323c); }
-  .tile.settings .icon { background: linear-gradient(155deg, #e2a23f, #b97a1e); }
+  .tile.audio .icon { --glow: var(--glow-audio); }
+  .tile.controller .icon { --glow: var(--glow-controller); }
+  .tile.spotify .icon { --glow: var(--glow-spotify); }
+  .tile.discord .icon { --glow: var(--glow-discord); }
+  .tile.steam .icon { --glow: var(--glow-steam); }
+  .tile.settings .icon { --glow: var(--glow-performance); }
 
   .detail-inner {
     height: 100%;
-    background: var(--glass); border: 1px solid var(--glass-border);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    background: var(--screen-bg); border: 1px solid var(--screen-border);
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.45);
     border-radius: 16px; padding: 12px 14px;
     display: flex; flex-direction: column;
   }
@@ -486,6 +544,6 @@ button:focus-visible {
     width: 60px; height: 60px; border-radius: 50%; background: #10131a;
     display: flex; align-items: center; justify-content: center;
   }
-  .ring-sm .pct { font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .ring-sm .pct { font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; font-family: var(--mono); }
   .ring-caption { font-size: 11px; color: var(--ink-dim); text-align: center; margin-top: 6px; }
 }

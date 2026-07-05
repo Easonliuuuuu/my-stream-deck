@@ -1,0 +1,10 @@
+{
+  "name": "my-stream-deck",
+  "private": true,
+  "scripts": {
+    "lint": "eslint server client --ext .js"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1"
+  }
+}

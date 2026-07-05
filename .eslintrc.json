@@ -1,0 +1,34 @@
+{
+  "root": true,
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": 2022
+  },
+  "rules": {
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
+  },
+  "overrides": [
+    {
+      "files": ["server/**/*.js"],
+      "env": {
+        "node": true,
+        "es2022": true
+      }
+    },
+    {
+      "files": ["client/sw.js"],
+      "env": {
+        "serviceworker": true,
+        "es2022": true
+      }
+    },
+    {
+      "files": ["client/*.js"],
+      "excludedFiles": ["client/sw.js"],
+      "env": {
+        "browser": true,
+        "es2022": true
+      }
+    }
+  ]
+}

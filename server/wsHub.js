@@ -56,9 +56,11 @@ function attach(server) {
     }
   }
 
-  setInterval(refreshAudio, config.poll.audioMs);
-  setInterval(refreshNowPlaying, config.poll.nowPlayingMs);
-  setInterval(refreshController, config.poll.controllerMs);
+  const timers = [
+    setInterval(refreshAudio, config.poll.audioMs),
+    setInterval(refreshNowPlaying, config.poll.nowPlayingMs),
+    setInterval(refreshController, config.poll.controllerMs),
+  ];
   refreshAudio();
   refreshNowPlaying();
   refreshController();
@@ -106,7 +108,17 @@ function attach(server) {
     });
   });
 
-  return wss;
+  function stop() {
+    timers.forEach(clearInterval);
+    // wss.close()'s callback only fires once every client socket is fully
+    // torn down; terminate them up front instead of waiting on a graceful
+    // close handshake that may not complete promptly (matters for tests that
+    // tear the server down right after a client disconnects).
+    wss.clients.forEach((client) => client.terminate());
+    wss.close();
+  }
+
+  return { wss, stop };
 }
 
 module.exports = { attach };

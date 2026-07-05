@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "test": "node --test",
     "calibrate-controller": "node services/controllerBattery.js --calibrate"
   },
   "dependencies": {

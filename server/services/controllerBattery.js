@@ -82,4 +82,4 @@ if (require.main === module && process.argv.includes('--calibrate')) {
   calibrate();
 }
 
-module.exports = { getControllerState };
+module.exports = { getControllerState, parseBatteryByte };

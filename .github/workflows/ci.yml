@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  lint:
+    name: Lint (JS + PowerShell)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install root lint tooling
+        run: npm install --no-audit --no-fund
+
+      - name: ESLint (server + client)
+        run: npm run lint
+
+      - name: PSScriptAnalyzer (server/scripts)
+        shell: pwsh
+        run: |
+          Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
+          $results = Invoke-ScriptAnalyzer -Path server/scripts -Recurse -Severity Warning,Error
+          $results | Format-Table -AutoSize
+          if ($results.Count -gt 0) {
+            Write-Error "PSScriptAnalyzer found $($results.Count) issue(s)"
+            exit 1
+          }
+
+  test:
+    name: Unit + integration tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # node-hid's native binding is lazy-loaded and only invoked when a real
+      # HID call happens; the app already handles that failing gracefully
+      # (reports the controller disconnected). Installed anyway as a safety
+      # net so `npm install` never warns about it.
+      - name: Install libusb (node-hid native dependency)
+        run: sudo apt-get update && sudo apt-get install -y libusb-1.0-0
+
+      - name: Install server dependencies
+        working-directory: server
+        run: npm install --no-audit --no-fund
+
+      - name: Run tests
+        working-directory: server
+        run: npm test
+
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

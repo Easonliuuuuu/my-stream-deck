@@ -56,6 +56,26 @@ watch which byte changes — that's the real battery byte. Update
 `BATTERY_BYTE_INDEX` in `server/services/controllerBattery.js` if it differs from
 the current value (55).
 
+## Development
+
+```bash
+npm install         # root devDependencies (eslint)
+npm run lint         # ESLint over server/ and client/
+
+cd server
+npm install
+npm test             # unit + integration tests (node's built-in test runner)
+```
+
+The integration tests boot a real HTTP+WebSocket server and mock only the one
+real OS boundary (`child_process.execFile`), so they run without PowerShell or
+AudioDeviceCmdlets installed. CI (`.github/workflows/ci.yml`) runs lint
+(ESLint + PSScriptAnalyzer), tests, and a secret-leak scan (gitleaks) on every
+push to `main`/`dev` and every PR targeting them.
+
+**Branching:** work happens directly on `dev`. Changes reach `main` only via a
+pull request (branch-protected, requires CI to pass).
+
 ## Project layout
 
 ```
@@ -64,8 +84,9 @@ server/            Node.js control server (runs on the Windows PC)
   wsHub.js         WebSocket auth, command dispatch, state broadcast
   config.js        Ports, poll intervals, pairing token
   pairing.js        Pairing token generation/persistence
-  services/        One module per capability (audio, media, controller, discovery)
+  services/        One module per capability (audio, media, controller, discovery, pairing URL/QR)
   scripts/         PowerShell scripts invoked by the services
+  test/            Unit + integration tests (node's built-in test runner)
 
 client/            Installable PWA served to the iPhone
   index.html       Card layout (now playing / audio / controller)

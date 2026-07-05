@@ -1,0 +1,60 @@
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; height: 100%;
+  background: #111; color: #eee;
+  font-family: -apple-system, system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+#pin-screen, #app {
+  display: flex; flex-direction: column; gap: 16px;
+  padding: 24px; min-height: 100%;
+}
+#pin-screen { align-items: center; justify-content: center; }
+#pin-screen input {
+  font-size: 18px; padding: 12px; border-radius: 8px; border: none;
+  width: 80%; max-width: 320px; text-align: center;
+}
+#pin-submit {
+  font-size: 18px; padding: 12px 24px; border-radius: 8px; border: none;
+  background: #1db954; color: #fff;
+}
+#pin-error { color: #ff6b6b; min-height: 1.2em; }
+
+#disconnected-banner {
+  background: #442222; color: #ffb3b3; padding: 8px 12px;
+  border-radius: 8px; text-align: center; font-size: 14px;
+}
+
+.card {
+  background: #1c1c1e; border-radius: 16px; padding: 20px;
+}
+.card h2 {
+  margin: 0 0 12px; font-size: 14px; text-transform: uppercase;
+  letter-spacing: 0.05em; color: #999;
+}
+#art {
+  width: 100%; max-width: 240px; border-radius: 12px; margin-bottom: 12px;
+}
+.track-title { font-size: 20px; font-weight: 600; }
+.track-artist { font-size: 15px; color: #aaa; margin-bottom: 12px; }
+.transport {
+  display: flex; justify-content: space-around;
+}
+.transport button {
+  font-size: 28px; background: none; border: none; color: #fff;
+  padding: 12px 20px;
+}
+.audio-row {
+  display: flex; justify-content: space-between; font-size: 15px;
+  padding: 8px 0; border-bottom: 1px solid #2a2a2c;
+  cursor: pointer;
+}
+.device-picker {
+  display: flex; flex-direction: column; gap: 6px; padding: 8px 0 4px;
+}
+.device-picker button {
+  text-align: left; background: #2a2a2c; color: #fff; border: none;
+  border-radius: 8px; padding: 10px 12px; font-size: 14px;
+}
+.device-picker button.current { background: #1db954; }
+.controller-status { font-size: 18px; }

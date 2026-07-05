@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>My Stream Deck</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#111111" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="pin-screen">
+    <h1>My Stream Deck</h1>
+    <input id="server-input" placeholder="PC address (e.g. 192.168.1.20:8787)" autocapitalize="off" autocorrect="off" />
+    <input id="pin-input" inputmode="numeric" placeholder="Pairing token" autocapitalize="off" autocorrect="off" />
+    <button id="pin-submit">Connect</button>
+    <p id="pin-error"></p>
+  </div>
+
+  <div id="app" hidden>
+    <div id="disconnected-banner" hidden>Disconnected — reconnecting…</div>
+
+    <section class="card" id="now-playing">
+      <h2>Now Playing</h2>
+      <img id="art" alt="" hidden />
+      <div class="track-title">—</div>
+      <div class="track-artist">—</div>
+      <div class="transport">
+        <button data-key="Prev">⏮</button>
+        <button data-key="PlayPause">⏯</button>
+        <button data-key="Next">⏭</button>
+      </div>
+    </section>
+
+    <section class="card" id="audio">
+      <h2>Audio</h2>
+      <div class="audio-row"><span>Output</span><span class="value" id="audio-output">—</span></div>
+      <div id="output-picker" class="device-picker"></div>
+      <div class="audio-row"><span>Input</span><span class="value" id="audio-input">—</span></div>
+      <div id="input-picker" class="device-picker"></div>
+    </section>
+
+    <section class="card" id="controller">
+      <h2>Controller</h2>
+      <div class="controller-status">Disconnected</div>
+    </section>
+  </div>
+
+<script src="app.js"></script>
+</body>
+</html>

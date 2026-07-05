@@ -1,0 +1,10 @@
+{
+  "name": "My Stream Deck",
+  "short_name": "StreamDeck",
+  "start_url": "/",
+  "display": "fullscreen",
+  "background_color": "#111111",
+  "theme_color": "#111111",
+  "orientation": "portrait",
+  "icons": []
+}

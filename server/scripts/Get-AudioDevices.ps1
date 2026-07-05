@@ -1,4 +1,4 @@
-#Requires -Modules AudioDeviceCmdlets
+﻿#Requires -Modules AudioDeviceCmdlets
 
 # Windows PowerShell defaults redirected stdout to the system's legacy OEM
 # codepage, which mangles non-ASCII device names. Force UTF-8 so Node reads
@@ -26,7 +26,7 @@ function Get-RegistryJackName($id) {
       $value = (Get-ItemProperty -Path $regPath -Name $PKEY_FriendlyName -ErrorAction Stop).$PKEY_FriendlyName
       if ($value) { return $value }
     } catch {
-      # fall through to $null below
+      Write-Verbose "No registry jack name for $id : $($_.Exception.Message)"
     }
   }
   return $null

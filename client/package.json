@@ -1,0 +1,10 @@
+{
+  "name": "my-stream-deck-client",
+  "private": true,
+  "scripts": {
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "playwright": "^1.48.0"
+  }
+}

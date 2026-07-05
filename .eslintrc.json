@@ -29,6 +29,14 @@
         "browser": true,
         "es2022": true
       }
+    },
+    {
+      "files": ["client/test/**/*.js"],
+      "env": {
+        "node": true,
+        "browser": true,
+        "es2022": true
+      }
     }
   ]
 }

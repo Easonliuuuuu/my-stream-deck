@@ -6,6 +6,12 @@
 # AsTask/Await bridge below is a well-known community workaround for calling WinRT
 # async methods directly from PowerShell.
 
+# Windows PowerShell defaults redirected stdout to the system's legacy OEM
+# codepage, which mangles non-ASCII track/artist names. Force UTF-8 so Node
+# reads the JSON correctly.
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+
 Add-Type -AssemblyName System.Runtime.WindowsRuntime
 
 $asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object {

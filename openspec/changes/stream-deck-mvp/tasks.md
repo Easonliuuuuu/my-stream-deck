@@ -2,8 +2,8 @@
 
 - [x] 1.1 Create repo layout: `server/` (Node.js) and `client/` (PWA), with `server/package.json` and a root README
 - [x] 1.2 Add server dependencies: `ws`, an HTTP static server, an mDNS/bonjour library, `node-hid`
-- [ ] 1.3 Verify `node-hid` builds/installs on the target Windows + Node version (pin a version with prebuilt binaries) — needs to run on the actual Windows PC
-- [ ] 1.4 Confirm PowerShell prerequisites: `AudioDeviceCmdlets` module installed; SMTC WinRT query runs from PowerShell — needs to run on the actual Windows PC (verified the script fails with a clear, actionable error when the module is missing, rather than crashing)
+- [x] 1.3 Verify `node-hid` builds/installs on the target Windows + Node version (pin a version with prebuilt binaries) — verified on the real Windows PC: `npm install` + `require('node-hid')` load cleanly with the prebuilt binary, no build tools needed
+- [x] 1.4 Confirm PowerShell prerequisites: `AudioDeviceCmdlets` module installed; SMTC WinRT query runs from PowerShell — installed `AudioDeviceCmdlets` on the real PC; both the audio and SMTC PowerShell scripts run successfully (SMTC verified against the idle/no-session case; see 7.2 for the populated case)
 
 ## 2. Control server: transport, auth, discovery
 
@@ -25,9 +25,9 @@
 
 ## 4. Capability: audio devices
 
-- [x] 4.1 Write a PowerShell wrapper over `Get-AudioDevice -List` returning devices + current defaults as JSON
+- [x] 4.1 Write a PowerShell wrapper over `Get-AudioDevice -List` returning devices + current defaults as JSON — hardened during real-hardware testing: `AudioDeviceCmdlets`' own `.Name` property corrupts non-Latin jack names (observed real device names silently mangled), so the script now reads the jack name from the registry (`PKEY_Device_FriendlyName`) via the device ID and reattaches the product-name suffix parsed from `.Name`
 - [x] 4.2 Node audio service: poll devices (few seconds / on client wake), emit deltas on change
-- [x] 4.3 Implement `set default output` and `set default input` commands via `Set-AudioDevice`
+- [x] 4.3 Implement `set default output` and `set default input` commands via `Set-AudioDevice` — verified on the real PC: switched default output to a different device and back, confirmed via `Get-AudioDevice` each time
 - [x] 4.4 Handle invalid/missing device references with an error result, leaving defaults unchanged
 
 ## 5. Capability: controller battery (DualSense over Bluetooth)
@@ -50,7 +50,7 @@
 ## 7. Integration & verification
 
 - [ ] 7.1 End-to-end: install the PWA on the iPhone, pair, and confirm all three cards render live — needs the real iPhone + Windows PC
-- [ ] 7.2 Verify each command path (play/pause/skip, switch output, switch input) affects the PC — needs the real Windows PC
+- [ ] 7.2 Verify each command path (play/pause/skip, switch output, switch input) affects the PC — output switching verified on the real PC (switched to a real device and back, confirmed via `Get-AudioDevice`); play/pause key-send verified to execute without error but not yet confirmed against actual playback (no active media session at test time); skip/next/prev and DualSense battery still untested
 - [ ] 7.3 Verify auto-reconnect after the phone backgrounds/foregrounds and after the server restarts — needs the real iPhone + Windows PC
 - [x] 7.4 Verify an unpaired device on the LAN cannot issue commands — verified with a test client: wrong-token connection's command was not executed and no state was sent until re-authenticating
 - [x] 7.5 Write README run instructions (start server, install PWA, pairing, dependency prerequisites)

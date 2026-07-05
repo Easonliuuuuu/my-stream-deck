@@ -68,68 +68,73 @@ function connect(server, token) {
   });
 }
 
-function renderNowPlaying(nowPlaying) {
-  document.querySelector('.track-title').textContent = nowPlaying.title || '—';
-  document.querySelector('.track-artist').textContent = nowPlaying.artist || '—';
-  const art = document.getElementById('art');
-  art.style.backgroundImage = nowPlaying.art ? `url(data:image/png;base64,${nowPlaying.art})` : '';
+// Every render target below is looked up by class, and every layout
+// (portrait, landscape) that wants to display it just includes an element
+// with that class — updating all of them uniformly means a new layout never
+// requires touching this rendering logic again.
+function setText(className, text) {
+  document.querySelectorAll(`.${className}`).forEach((el) => { el.textContent = text; });
 }
 
-function renderDevicePicker(containerId, devices, currentId, kind) {
-  const container = document.getElementById(containerId);
-  container.innerHTML = '';
-  (devices || []).forEach((device) => {
-    const btn = document.createElement('button');
-    btn.className = 'device';
-    const isCurrent = device.id === currentId;
-    if (isCurrent) btn.classList.add('current');
-    btn.innerHTML = `<span>${device.name}</span>${isCurrent ? '<span class="check"></span>' : ''}`;
-    btn.addEventListener('click', () => {
-      state.ws.send(JSON.stringify({ type: 'command', action: 'setAudioDevice', id: device.id, kind }));
+function renderNowPlaying(nowPlaying) {
+  setText('track-title', nowPlaying.title || '—');
+  setText('track-artist', nowPlaying.artist || '—');
+  const artUrl = nowPlaying.art ? `url(data:image/png;base64,${nowPlaying.art})` : '';
+  document.querySelectorAll('.art').forEach((el) => { el.style.backgroundImage = artUrl; });
+}
+
+function renderDevicePicker(containerClass, devices, currentId, kind) {
+  document.querySelectorAll(`.${containerClass}`).forEach((container) => {
+    container.innerHTML = '';
+    (devices || []).forEach((device) => {
+      const btn = document.createElement('button');
+      btn.className = 'device';
+      const isCurrent = device.id === currentId;
+      if (isCurrent) btn.classList.add('current');
+      btn.innerHTML = `<span>${device.name}</span>${isCurrent ? '<span class="check"></span>' : ''}`;
+      btn.addEventListener('click', () => {
+        state.ws.send(JSON.stringify({ type: 'command', action: 'setAudioDevice', id: device.id, kind }));
+      });
+      container.appendChild(btn);
     });
-    container.appendChild(btn);
   });
 }
 
 function renderAudio(audio) {
   state.audio = audio;
   const outputName = audio.output?.current || '—';
-  document.getElementById('audio-output').textContent = outputName;
-  document.getElementById('audio-input').textContent = audio.input?.current || '—';
-  document.getElementById('audio-summary').textContent = outputName;
+  setText('audio-output', outputName);
+  setText('audio-input', audio.input?.current || '—');
+  setText('audio-summary', outputName);
   renderDevicePicker('output-picker', audio.outputs, audio.output?.id, 'output');
   renderDevicePicker('input-picker', audio.inputs, audio.input?.id, 'input');
 }
 
 function renderController(controller) {
-  const summary = document.getElementById('controller-summary');
-  const ring = document.getElementById('batt-ring');
-  const pct = document.getElementById('batt-pct');
-  const stateLabel = document.getElementById('batt-state');
+  const rings = document.querySelectorAll('.batt-ring');
 
   if (!controller.connected) {
-    summary.textContent = 'Disconnected';
-    ring.classList.add('disconnected');
-    ring.style.setProperty('--pct', '0%');
-    pct.textContent = '—';
-    stateLabel.textContent = 'Disconnected';
+    setText('controller-summary', 'Disconnected');
+    rings.forEach((ring) => { ring.classList.add('disconnected'); ring.style.setProperty('--pct', '0%'); });
+    setText('batt-pct', '—');
+    setText('batt-state', 'Disconnected');
     return;
   }
 
   const battery = controller.battery ?? 0;
-  summary.textContent = controller.battery == null ? '…' : `${battery}%`;
-  ring.classList.remove('disconnected');
-  ring.style.setProperty('--pct', `${battery}%`);
-  pct.textContent = controller.battery == null ? '…' : `${battery}%`;
-  stateLabel.textContent = controller.charging ? 'Charging' : 'Not charging';
+  setText('controller-summary', controller.battery == null ? '…' : `${battery}%`);
+  rings.forEach((ring) => { ring.classList.remove('disconnected'); ring.style.setProperty('--pct', `${battery}%`); });
+  setText('batt-pct', controller.battery == null ? '…' : `${battery}%`);
+  setText('batt-state', controller.charging ? 'Charging' : 'Not charging');
 }
 
 function renderSystemLoad(load) {
-  document.getElementById('performance-summary').textContent = `CPU ${load.cpu}%`;
-  document.getElementById('cpu-val').textContent = `${load.cpu}%`;
-  document.getElementById('cpu-fill').style.width = `${load.cpu}%`;
-  document.getElementById('gpu-val').textContent = `${load.gpu}%`;
-  document.getElementById('gpu-fill').style.width = `${load.gpu}%`;
+  setText('performance-summary', `CPU ${load.cpu}%`);
+  setText('cpu-val', `${load.cpu}%`);
+  document.querySelectorAll('.cpu-fill').forEach((el) => { el.style.width = `${load.cpu}%`; });
+  setText('gpu-val', `${load.gpu}%`);
+  document.querySelectorAll('.gpu-fill').forEach((el) => { el.style.width = `${load.gpu}%`; });
+  setText('active-app', load.activeApp || '—');
 }
 
 document.getElementById('pin-submit').addEventListener('click', () => {
@@ -154,9 +159,12 @@ document.querySelectorAll('[data-launch]').forEach((btn) => {
   });
 });
 
+// Portrait's #stack and landscape's .grid-panel each own a `data-screen`
+// value independently — scope by closest ancestor rather than hardcoding a
+// container, since both layouts share this same click wiring.
 document.querySelectorAll('[data-nav]').forEach((el) => {
   el.addEventListener('click', () => {
-    document.getElementById('stack').dataset.screen = el.dataset.nav;
+    el.closest('[data-screen]').dataset.screen = el.dataset.nav;
   });
 });
 

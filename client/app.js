@@ -45,6 +45,7 @@ function connect(server, token) {
       if (msg.payload.audio) renderAudio(msg.payload.audio);
       if (msg.payload.nowPlaying) renderNowPlaying(msg.payload.nowPlaying);
       if (msg.payload.controller) renderController(msg.payload.controller);
+      if (msg.payload.systemLoad) renderSystemLoad(msg.payload.systemLoad);
       return;
     }
 
@@ -52,6 +53,7 @@ function connect(server, token) {
       if (msg.card === 'audio') renderAudio(msg.payload);
       if (msg.card === 'nowPlaying') renderNowPlaying(msg.payload);
       if (msg.card === 'controller') renderController(msg.payload);
+      if (msg.card === 'systemLoad') renderSystemLoad(msg.payload);
       return;
     }
 
@@ -122,6 +124,14 @@ function renderController(controller) {
   stateLabel.textContent = controller.charging ? 'Charging' : 'Not charging';
 }
 
+function renderSystemLoad(load) {
+  document.getElementById('performance-summary').textContent = `CPU ${load.cpu}%`;
+  document.getElementById('cpu-val').textContent = `${load.cpu}%`;
+  document.getElementById('cpu-fill').style.width = `${load.cpu}%`;
+  document.getElementById('gpu-val').textContent = `${load.gpu}%`;
+  document.getElementById('gpu-fill').style.width = `${load.gpu}%`;
+}
+
 document.getElementById('pin-submit').addEventListener('click', () => {
   const server = document.getElementById('server-input').value.trim();
   const token = document.getElementById('pin-input').value.trim();
@@ -132,9 +142,15 @@ document.getElementById('pin-submit').addEventListener('click', () => {
   connect(server, token);
 });
 
-document.querySelectorAll('.transport button').forEach((btn) => {
+document.querySelectorAll('[data-key]').forEach((btn) => {
   btn.addEventListener('click', () => {
     state.ws.send(JSON.stringify({ type: 'command', action: 'mediaKey', key: btn.dataset.key }));
+  });
+});
+
+document.querySelectorAll('[data-launch]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    state.ws.send(JSON.stringify({ type: 'command', action: 'launchApp', appId: btn.dataset.launch }));
   });
 });
 

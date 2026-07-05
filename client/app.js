@@ -11,6 +11,9 @@ if ('serviceWorker' in navigator) {
 
 function setDisconnectedBanner(visible) {
   document.getElementById('disconnected-banner').hidden = !visible;
+  const status = document.getElementById('conn-status');
+  status.classList.toggle('warn', visible);
+  status.lastChild.textContent = visible ? 'Reconnecting…' : 'Connected';
 }
 
 function connect(server, token) {
@@ -29,6 +32,7 @@ function connect(server, token) {
         localStorage.setItem('sd-server', server);
         localStorage.setItem('sd-token', token);
         document.getElementById('pin-screen').hidden = true;
+        document.getElementById('app-backdrop').hidden = false;
         document.getElementById('app').hidden = false;
         setDisconnectedBanner(false);
       } else {
@@ -66,12 +70,7 @@ function renderNowPlaying(nowPlaying) {
   document.querySelector('.track-title').textContent = nowPlaying.title || '—';
   document.querySelector('.track-artist').textContent = nowPlaying.artist || '—';
   const art = document.getElementById('art');
-  if (nowPlaying.art) {
-    art.src = `data:image/png;base64,${nowPlaying.art}`;
-    art.hidden = false;
-  } else {
-    art.hidden = true;
-  }
+  art.style.backgroundImage = nowPlaying.art ? `url(data:image/png;base64,${nowPlaying.art})` : '';
 }
 
 function renderDevicePicker(containerId, devices, currentId, kind) {
@@ -79,8 +78,10 @@ function renderDevicePicker(containerId, devices, currentId, kind) {
   container.innerHTML = '';
   (devices || []).forEach((device) => {
     const btn = document.createElement('button');
-    btn.textContent = device.name;
-    if (device.id === currentId) btn.classList.add('current');
+    btn.className = 'device';
+    const isCurrent = device.id === currentId;
+    if (isCurrent) btn.classList.add('current');
+    btn.innerHTML = `<span>${device.name}</span>${isCurrent ? '<span class="check"></span>' : ''}`;
     btn.addEventListener('click', () => {
       state.ws.send(JSON.stringify({ type: 'command', action: 'setAudioDevice', id: device.id, kind }));
     });
@@ -90,17 +91,35 @@ function renderDevicePicker(containerId, devices, currentId, kind) {
 
 function renderAudio(audio) {
   state.audio = audio;
-  document.getElementById('audio-output').textContent = audio.output?.current || '—';
+  const outputName = audio.output?.current || '—';
+  document.getElementById('audio-output').textContent = outputName;
   document.getElementById('audio-input').textContent = audio.input?.current || '—';
+  document.getElementById('audio-summary').textContent = outputName;
   renderDevicePicker('output-picker', audio.outputs, audio.output?.id, 'output');
   renderDevicePicker('input-picker', audio.inputs, audio.input?.id, 'input');
 }
 
 function renderController(controller) {
-  const el = document.querySelector('.controller-status');
-  el.textContent = controller.connected
-    ? `${controller.battery}%${controller.charging ? ' (charging)' : ''}`
-    : 'Disconnected';
+  const summary = document.getElementById('controller-summary');
+  const ring = document.getElementById('batt-ring');
+  const pct = document.getElementById('batt-pct');
+  const stateLabel = document.getElementById('batt-state');
+
+  if (!controller.connected) {
+    summary.textContent = 'Disconnected';
+    ring.classList.add('disconnected');
+    ring.style.setProperty('--pct', '0%');
+    pct.textContent = '—';
+    stateLabel.textContent = 'Disconnected';
+    return;
+  }
+
+  const battery = controller.battery ?? 0;
+  summary.textContent = controller.battery == null ? '…' : `${battery}%`;
+  ring.classList.remove('disconnected');
+  ring.style.setProperty('--pct', `${battery}%`);
+  pct.textContent = controller.battery == null ? '…' : `${battery}%`;
+  stateLabel.textContent = controller.charging ? 'Charging' : 'Not charging';
 }
 
 document.getElementById('pin-submit').addEventListener('click', () => {
@@ -116,6 +135,12 @@ document.getElementById('pin-submit').addEventListener('click', () => {
 document.querySelectorAll('.transport button').forEach((btn) => {
   btn.addEventListener('click', () => {
     state.ws.send(JSON.stringify({ type: 'command', action: 'mediaKey', key: btn.dataset.key }));
+  });
+});
+
+document.querySelectorAll('[data-nav]').forEach((el) => {
+  el.addEventListener('click', () => {
+    document.getElementById('stack').dataset.screen = el.dataset.nav;
   });
 });
 

@@ -1,60 +1,275 @@
+:root {
+  --void: #0b0d12;
+  --glass: rgba(255, 255, 255, 0.055);
+  --glass-strong: rgba(255, 255, 255, 0.09);
+  --glass-border: rgba(255, 255, 255, 0.10);
+  --ink: #eef1f5;
+  --ink-dim: #8d96a3;
+  --azure: #5b8def;
+  --mint: #59d9a3;
+  --warn: #e2a23f;
+}
+
 * { box-sizing: border-box; }
+
 html, body {
-  margin: 0; padding: 0; height: 100%;
-  background: #111; color: #eee;
-  font-family: -apple-system, system-ui, sans-serif;
+  margin: 0;
+  height: 100%;
+  background: var(--void);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
   -webkit-tap-highlight-color: transparent;
 }
-#pin-screen, #app {
-  display: flex; flex-direction: column; gap: 16px;
-  padding: 24px; min-height: 100%;
-}
-#pin-screen { align-items: center; justify-content: center; }
-#pin-screen input {
-  font-size: 18px; padding: 12px; border-radius: 8px; border: none;
-  width: 80%; max-width: 320px; text-align: center;
-}
-#pin-submit {
-  font-size: 18px; padding: 12px 24px; border-radius: 8px; border: none;
-  background: #1db954; color: #fff;
-}
-#pin-error { color: #ff6b6b; min-height: 1.2em; }
 
-#disconnected-banner {
-  background: #442222; color: #ffb3b3; padding: 8px 12px;
-  border-radius: 8px; text-align: center; font-size: 14px;
-}
-
-.card {
-  background: #1c1c1e; border-radius: 16px; padding: 20px;
-}
-.card h2 {
-  margin: 0 0 12px; font-size: 14px; text-transform: uppercase;
-  letter-spacing: 0.05em; color: #999;
-}
-#art {
-  width: 100%; max-width: 240px; border-radius: 12px; margin-bottom: 12px;
-}
-.track-title { font-size: 20px; font-weight: 600; }
-.track-artist { font-size: 15px; color: #aaa; margin-bottom: 12px; }
-.transport {
-  display: flex; justify-content: space-around;
-}
-.transport button {
-  font-size: 28px; background: none; border: none; color: #fff;
-  padding: 12px 20px;
-}
-.audio-row {
-  display: flex; justify-content: space-between; font-size: 15px;
-  padding: 8px 0; border-bottom: 1px solid #2a2a2c;
+button {
+  font-family: inherit;
   cursor: pointer;
 }
-.device-picker {
-  display: flex; flex-direction: column; gap: 6px; padding: 8px 0 4px;
+
+button:focus-visible {
+  outline: 2px solid var(--azure);
+  outline-offset: 2px;
 }
-.device-picker button {
-  text-align: left; background: #2a2a2c; color: #fff; border: none;
-  border-radius: 8px; padding: 10px 12px; font-size: 14px;
+
+/* Ambient backdrop */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(560px 420px at 18% 8%, rgba(91, 141, 239, 0.16), transparent 60%),
+    radial-gradient(420px 360px at 90% 85%, rgba(89, 217, 163, 0.08), transparent 65%);
 }
-.device-picker button.current { background: #1db954; }
-.controller-status { font-size: 18px; }
+
+/* Pairing screen */
+#pin-screen {
+  display: flex; flex-direction: column; gap: 16px;
+  align-items: center; justify-content: center;
+  min-height: 100%; padding: 24px;
+}
+#pin-screen h1 { font-size: 20px; font-weight: 650; letter-spacing: -0.02em; margin-bottom: 4px; }
+#pin-screen input {
+  font-size: 16px; padding: 13px 14px; border-radius: 14px; border: 1px solid var(--glass-border);
+  background: var(--glass); color: var(--ink);
+  width: 80%; max-width: 320px; text-align: center;
+}
+#pin-screen input::placeholder { color: var(--ink-dim); }
+#pin-submit {
+  font-size: 16px; font-weight: 600; padding: 13px 28px; border-radius: 14px; border: none;
+  background: var(--azure); color: #0b0d12;
+}
+#pin-error { color: #ff9a8b; min-height: 1.2em; font-size: 13px; }
+
+/* App shell */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding: 22px 20px 0;
+}
+
+/* The `display` rules above apply unconditionally, which would otherwise
+   override the browser's default `[hidden] { display: none }` — author
+   styles always win over the user-agent stylesheet regardless of
+   specificity. These reinstate hiding once app.js toggles `.hidden`. */
+#pin-screen[hidden], #app[hidden] { display: none; }
+
+#disconnected-banner {
+  background: rgba(226, 162, 63, 0.16);
+  border: 1px solid rgba(226, 162, 63, 0.35);
+  color: var(--warn);
+  padding: 8px 14px;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px 18px;
+}
+.top .name { font-size: 20px; font-weight: 650; letter-spacing: -0.02em; }
+.status { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-dim); }
+.status .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--mint); box-shadow: 0 0 8px var(--mint);
+}
+.status.warn .dot { background: var(--warn); box-shadow: 0 0 8px var(--warn); }
+
+/* Screen stack + drill-in navigation */
+.stack {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding-bottom: 28px;
+  transition: transform 0.32s cubic-bezier(.4, 0, .2, 1), opacity 0.28s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen { transition: none; }
+}
+
+.stack[data-screen="home"] .screen.home { transform: translateX(0); opacity: 1; }
+.stack[data-screen="home"] .screen.detail { transform: translateX(100%); opacity: 0; pointer-events: none; }
+
+.stack[data-screen="audio"] .screen.home,
+.stack[data-screen="controller"] .screen.home {
+  transform: translateX(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+.stack[data-screen="audio"] .screen[data-id="audio"] { transform: translateX(0); opacity: 1; }
+.stack[data-screen="controller"] .screen[data-id="controller"] { transform: translateX(0); opacity: 1; }
+.stack[data-screen="audio"] .screen[data-id="controller"],
+.stack[data-screen="controller"] .screen[data-id="audio"] {
+  transform: translateX(100%); opacity: 0; pointer-events: none;
+}
+
+/* Now playing strip */
+.now-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 18px;
+  padding: 10px 14px;
+  margin-bottom: 22px;
+}
+
+.art-sm {
+  width: 40px; height: 40px; border-radius: 11px;
+  background: linear-gradient(160deg, #2c3542, #12151b 70%);
+  background-size: cover;
+  background-position: center;
+  flex: none;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.now-text { min-width: 0; }
+.track-title {
+  font-size: 14px; font-weight: 620; letter-spacing: -0.01em;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.track-artist {
+  font-size: 11.5px; color: var(--ink-dim); margin-top: 1px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.keys { display: flex; gap: 2px; margin-left: auto; flex: none; }
+.key {
+  background: none; border: none; color: var(--ink); font-size: 17px;
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.1s ease;
+}
+.key.primary { color: var(--azure); }
+.key:active { transform: scale(0.9); }
+
+/* App icon grid */
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px 14px;
+  padding: 2px 2px;
+}
+
+.app {
+  background: none; border: none; color: var(--ink);
+  display: flex; flex-direction: column; align-items: center; gap: 7px;
+}
+
+.app .icon {
+  width: 62px; height: 62px; border-radius: 17px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 10px 22px -10px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: transform 0.12s ease;
+}
+.app:active .icon { transform: scale(0.92); }
+
+.app.audio .icon { background: linear-gradient(155deg, #3d6fd8, #2a4ea8); }
+.app.controller .icon { background: linear-gradient(155deg, #3fb98a, #268266); }
+.app .icon svg { width: 28px; height: 28px; stroke: #fff; }
+
+.app .lbl { font-size: 12px; font-weight: 500; }
+.app .sub {
+  font-size: 10.5px; color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+  max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* Detail screens */
+.back {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: none; border: none; color: var(--azure);
+  font-size: 15px; padding: 4px 0; margin-bottom: 14px;
+}
+
+.detail-title { font-size: 22px; font-weight: 650; letter-spacing: -0.02em; margin: 0 0 16px; }
+
+.card {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 14px 16px 16px;
+  margin-bottom: 14px;
+}
+
+.d-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; }
+.d-row .k { font-size: 13px; color: var(--ink-dim); }
+.d-row .v { font-size: 14px; font-variant-numeric: tabular-nums; }
+
+.picker { display: flex; flex-direction: column; gap: 7px; margin-top: 8px; }
+
+.device {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--glass-strong); border: none; border-radius: 14px;
+  padding: 11px 14px; font-size: 13.5px; color: var(--ink); text-align: left;
+  width: 100%;
+}
+.device.current {
+  background: rgba(91, 141, 239, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(91, 141, 239, 0.4);
+  color: #cfe0ff;
+}
+.device .check {
+  width: 16px; height: 16px; border-radius: 50%; background: var(--azure);
+  position: relative; flex: none;
+}
+.device .check::after {
+  content: ""; position: absolute; left: 5px; top: 3px; width: 4px; height: 7px;
+  border: solid #0b0d12; border-width: 0 1.6px 1.6px 0; transform: rotate(40deg);
+}
+
+/* Controller battery ring */
+.batt-hero { display: flex; align-items: center; justify-content: center; padding: 14px 0 18px; }
+
+.ring-lg {
+  --pct: 0%;
+  width: 140px; height: 140px; border-radius: 50%;
+  background: conic-gradient(var(--mint) 0% var(--pct), rgba(255, 255, 255, 0.08) var(--pct) 100%);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.4s ease;
+}
+.ring-lg.disconnected { background: rgba(255, 255, 255, 0.06); }
+
+.ring-lg .hole {
+  width: 112px; height: 112px; border-radius: 50%; background: #10131a;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.ring-lg .pct { font-size: 32px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.ring-lg .state { font-size: 11px; color: var(--ink-dim); margin-top: 2px; }

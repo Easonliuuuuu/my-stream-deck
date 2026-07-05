@@ -6,7 +6,7 @@
 <title>My Stream Deck</title>
 <link rel="manifest" href="manifest.json" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="theme-color" content="#111111" />
+<meta name="theme-color" content="#0b0d12" />
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -18,33 +18,79 @@
     <p id="pin-error"></p>
   </div>
 
+  <div class="backdrop" hidden id="app-backdrop"></div>
+
   <div id="app" hidden>
     <div id="disconnected-banner" hidden>Disconnected — reconnecting…</div>
 
-    <section class="card" id="now-playing">
-      <h2>Now Playing</h2>
-      <img id="art" alt="" hidden />
-      <div class="track-title">—</div>
-      <div class="track-artist">—</div>
-      <div class="transport">
-        <button data-key="Prev">⏮</button>
-        <button data-key="PlayPause">⏯</button>
-        <button data-key="Next">⏭</button>
-      </div>
-    </section>
+    <div class="top">
+      <span class="name">My Stream Deck</span>
+      <span class="status" id="conn-status"><span class="dot"></span>Connected</span>
+    </div>
 
-    <section class="card" id="audio">
-      <h2>Audio</h2>
-      <div class="audio-row"><span>Output</span><span class="value" id="audio-output">—</span></div>
-      <div id="output-picker" class="device-picker"></div>
-      <div class="audio-row"><span>Input</span><span class="value" id="audio-input">—</span></div>
-      <div id="input-picker" class="device-picker"></div>
-    </section>
+    <div class="stack" id="stack" data-screen="home">
+      <section class="screen home">
+        <div class="now-strip">
+          <div id="art" class="art-sm"></div>
+          <div class="now-text">
+            <div class="track-title">—</div>
+            <div class="track-artist">—</div>
+          </div>
+          <div class="keys transport">
+            <button class="key" data-key="Prev">⏮</button>
+            <button class="key primary" data-key="PlayPause">⏯</button>
+            <button class="key" data-key="Next">⏭</button>
+          </div>
+        </div>
 
-    <section class="card" id="controller">
-      <h2>Controller</h2>
-      <div class="controller-status">Disconnected</div>
-    </section>
+        <div class="app-grid">
+          <button class="app audio" data-nav="audio">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9v6h4l5 4V5L7 9H3z"/><path d="M16 8a5 5 0 0 1 0 8"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+            </div>
+            <span class="lbl">Audio</span>
+            <span class="sub" id="audio-summary">—</span>
+          </button>
+          <button class="app controller" data-nav="controller">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12a4 4 0 0 1 4 4l1 5a2.5 2.5 0 0 1-4.6 1.4L16 16H8l-2.4 2.4A2.5 2.5 0 0 1 1 17l1-5a4 4 0 0 1 4-4z"/><circle cx="17" cy="11" r="0.8" fill="#fff" stroke="none"/><circle cx="15" cy="13" r="0.8" fill="#fff" stroke="none"/></svg>
+            </div>
+            <span class="lbl">Controller</span>
+            <span class="sub" id="controller-summary">—</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="screen detail" data-id="audio">
+        <button class="back" data-nav="home">‹ Home</button>
+        <p class="detail-title">Audio</p>
+        <div class="card">
+          <div class="d-row"><span class="k">Output</span><span class="v" id="audio-output">—</span></div>
+          <div id="output-picker" class="picker"></div>
+        </div>
+        <div class="card">
+          <div class="d-row"><span class="k">Input</span><span class="v" id="audio-input">—</span></div>
+          <div id="input-picker" class="picker"></div>
+        </div>
+      </section>
+
+      <section class="screen detail" data-id="controller">
+        <button class="back" data-nav="home">‹ Home</button>
+        <p class="detail-title">Controller</p>
+        <div class="card">
+          <div class="batt-hero">
+            <div class="ring-lg" id="batt-ring">
+              <div class="hole">
+                <span class="pct" id="batt-pct">—</span>
+                <span class="state" id="batt-state">—</span>
+              </div>
+            </div>
+          </div>
+          <div class="d-row"><span class="k">Link</span><span class="v">Bluetooth</span></div>
+          <div class="d-row"><span class="k">Device</span><span class="v">DualSense</span></div>
+        </div>
+      </section>
+    </div>
   </div>
 
 <script src="app.js"></script>

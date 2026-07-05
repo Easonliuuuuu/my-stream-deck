@@ -65,10 +65,13 @@ cd server
 npm run calibrate-controller
 ```
 
-This dumps raw HID report bytes. Plug/unplug the controller's charging cable and
-watch which byte changes — that's the real battery byte. Update
-`BATTERY_BYTE_INDEX` in `server/services/controllerBattery.js` if it differs from
-the current value (55).
+This dumps raw HID report bytes (after sending the feature-report handshake
+that switches the controller from its default short/basic Bluetooth report
+into the full report carrying sensor and battery data). Plug/unplug the
+controller's charging cable and watch which byte changes — that's the real
+battery byte. Update `BATTERY_BYTE_INDEX` in
+`server/services/controllerBattery.js` if it differs from the current value
+(54).
 
 ## Development
 

@@ -52,10 +52,8 @@ function Get-StreamDeckSource {
         Write-Host "Updating existing install at $installDir..." -ForegroundColor Yellow
         Push-Location $installDir
         git fetch
-        git reset --hard '@{u}'
-        if ($LASTEXITCODE -ne 0) {
-            git reset --hard origin/main
-        }
+        $branch = git rev-parse --abbrev-ref HEAD
+        git reset --hard "origin/$branch"
         Pop-Location
         return
     }

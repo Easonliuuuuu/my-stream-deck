@@ -119,7 +119,14 @@ document.querySelectorAll('.transport button').forEach((btn) => {
   });
 });
 
-if (state.server && state.token) {
+// The QR code printed by the server encodes this page's own URL with a
+// `token` query param, so scanning it with the phone's Camera app (not an
+// in-page camera capture — that would need HTTPS) opens Safari straight to
+// a ready-to-pair link. `location.host` is already this server's address.
+const urlToken = new URLSearchParams(location.search).get('token');
+if (urlToken) {
+  connect(location.host, urlToken);
+} else if (state.server && state.token) {
   document.getElementById('server-input').value = state.server;
   connect(state.server, state.token);
 }

@@ -16,12 +16,17 @@ The client SHALL be installable to the iPhone home screen and run fullscreen wit
 
 ### Requirement: Connection and pairing UX
 
-The client SHALL guide the user through connecting to the server and entering the pairing token, and SHALL persist the connection so it reconnects automatically.
+The client SHALL support pairing via a QR code scanned by the phone's native camera, and SHALL persist the connection so it reconnects automatically. Manual entry of the PC's address and pairing token SHALL remain available as a fallback.
 
-#### Scenario: First connection
+#### Scenario: Pairing via QR scan
 
-- **WHEN** the app runs for the first time with no saved server or token
-- **THEN** it prompts the user to manually enter the PC's address and the pairing token (browsers cannot browse mDNS/Bonjour services, so discovery is not available to the PWA itself)
+- **WHEN** the user scans the server-printed QR code with the iPhone's Camera app and opens the resulting link
+- **THEN** Safari opens the client with the pairing token in the URL, and the client reads it and connects automatically without the user typing anything
+
+#### Scenario: Manual first connection
+
+- **WHEN** the app runs for the first time with no saved server or token and no token was supplied via URL
+- **THEN** it prompts the user to manually enter the PC's address and the pairing token
 
 #### Scenario: Automatic reconnect
 

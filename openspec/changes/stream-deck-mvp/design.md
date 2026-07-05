@@ -56,8 +56,12 @@ The server shells out to PowerShell for audio and SMTC. To avoid per-poll proces
 - Controller battery: ~15–30s (slowly changing).
 Each poller broadcasts only on change, so cadence ≠ wire traffic.
 
-### Security: shared-secret pairing token, entered manually
-Server generates a random token on first run, persists it, and prints it to the console. The user types it once into the client, which then persists it. **Alternative considered:** QR-code pairing — rejected because scanning a QR from within the PWA needs camera access (`getUserMedia`), which WebKit only grants in a secure context (HTTPS or `localhost`); the server is plain HTTP on a LAN IP, so this would require adding TLS, which is explicitly out of scope for v1. Manual entry has no such dependency. Separately, **no auth at all** was rejected because the LAN includes untrusted devices and the server can control the PC.
+### Security: shared-secret pairing token, paired via QR scan (native camera, not in-page)
+Server generates a random token on first run, persists it, and prints both the token and a pairing URL (`http://<lan-ip>:<port>/?token=<token>`) to the console — the URL rendered as an ASCII QR code (via the `qrcode` package's terminal output). The user scans it with the iPhone's **built-in Camera app**, which recognizes the QR and offers to open the URL in Safari; the client reads `token` from `location.search` on load and auto-pairs, no typing required. Manual entry (address + token typed in) remains as a fallback in the UI for cases where scanning isn't convenient (e.g., no line of sight to the PC monitor).
+
+This corrects an earlier version of this design that rejected QR pairing outright, reasoning that scanning a QR *from within the PWA* needs camera access (`getUserMedia`), which WebKit only grants in a secure context (HTTPS/localhost) — true, but irrelevant, because the scanning here is done by the OS-level Camera app, not the page itself. The PWA never touches the camera; it only ever reads a query parameter. That sidesteps the HTTPS requirement entirely.
+
+Separately, **no auth at all** remains rejected because the LAN includes untrusted devices and the server can control the PC.
 
 ### Hosting: server also serves the PWA
 The Node server statically serves the client bundle, so the phone installs the app straight from the PC — one thing to run, no separate web host.

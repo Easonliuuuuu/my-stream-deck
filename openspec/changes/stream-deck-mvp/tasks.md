@@ -9,7 +9,7 @@
 
 - [x] 2.1 Stand up an HTTP server that statically serves the `client/` bundle
 - [x] 2.2 Add a WebSocket endpoint alongside the HTTP server
-- [x] 2.3 Generate + persist a pairing token on first run; print it to the console
+- [x] 2.3 Generate + persist a pairing token on first run; print it to the console as a pairing URL + ASCII QR code (scanned via the phone's native Camera app, not an in-page camera capture — verified on the real PC: valid QR with correct finder patterns, encoding `http://<lan-ip>:<port>/?token=<token>`)
 - [x] 2.4 Implement the WS handshake: require the token, mark the connection authenticated, reject commands otherwise — verified end-to-end with a test client (wrong token rejected, pre-auth command ignored, correct token accepted)
 - [x] 2.5 Advertise the server via mDNS (`_streamdeck._tcp`) with host/port/instance name (server-side only — browsers can't consume mDNS, so this doesn't give the PWA discovery; see design.md)
 - [x] 2.6 Implement typed command-envelope dispatch (`{type, payload}`) with unknown-type handled safely — verified: unknown type returns a clean error, connection stays open
@@ -41,7 +41,7 @@
 
 - [x] 6.1 Create the PWA shell: HTML, `manifest.json` (standalone/fullscreen, name, icon), service worker
 - [x] 6.2 Implement the WebSocket client with saved-server + saved-token persistence and auto-reconnect
-- [x] 6.3 Build the connection/pairing screen (manual server + token entry) and a disconnected-state indicator
+- [x] 6.3 Build the connection/pairing screen (QR-scan auto-pair via URL token param, manual server + token entry as fallback) and a disconnected-state indicator
 - [x] 6.4 Build the card layout container that renders a state snapshot and updates cards in place
 - [x] 6.5 Now-playing card: art/title/artist + prev/play-pause/next buttons wired to commands
 - [x] 6.6 Audio card: show current output/input; tap to open a device picker that sends switch commands

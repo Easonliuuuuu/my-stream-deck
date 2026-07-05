@@ -26,15 +26,17 @@ npm start
 ```
 
 On first run the server:
-- Prints the URL to open on the phone, e.g. `http://<pc-ip>:8787`
 - Generates and prints a **pairing token** (saved to `server/.pairing.json` — do not commit this file)
-- Advertises itself on the LAN via mDNS as `_streamdeck._tcp`
+- Prints a pairing URL and an ASCII **QR code** in the terminal
+- Advertises itself on the LAN via mDNS as `_streamdeck._tcp` (not consumable by the PWA itself — see `openspec/changes/stream-deck-mvp/design.md`)
 
 ## Connecting the iPhone
 
-1. On the iPhone, open Safari and go to `http://<pc-ip>:8787`.
-2. Enter the PC's address and the pairing token printed by the server.
-3. Tap the Share icon → **Add to Home Screen** to install it as a fullscreen app.
+**Scan to pair (recommended):** open the iPhone's built-in **Camera** app and point it at the QR code printed in the server's terminal. Tap the banner that appears — it opens Safari straight to the client with the pairing token already filled in, no typing required.
+
+**Manual pairing (fallback):** open Safari, go to `http://<pc-ip>:8787`, and enter the PC's address and the pairing token printed by the server.
+
+Either way, once connected: tap the Share icon → **Add to Home Screen** to install it as a fullscreen app.
 
 The client remembers the server address and token and reconnects automatically.
 

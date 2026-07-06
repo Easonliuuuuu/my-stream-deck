@@ -76,6 +76,9 @@ function fakeDevices(n, prefix) {
 test('portrait: scrolling a long device list does not scroll the document', async () => {
   const page = await newAppPage({ width: 390, height: 844 });
   await page.evaluate(() => { document.getElementById('stack').dataset.screen = 'audio'; });
+  // The screen slides in over 320ms — wait for the transition to finish before
+  // wheeling, otherwise the element is still off-screen and the scroll misses it.
+  await page.waitForTimeout(350);
   await page.evaluate((devices) => {
     window.renderAudio({
       output: { current: 'X', id: 'o' },
@@ -102,6 +105,7 @@ test('portrait: scrolling a long device list does not scroll the document', asyn
 test('landscape: scrolling a long device list does not scroll the document', async () => {
   const page = await newAppPage({ width: 844, height: 390 });
   await page.evaluate(() => { document.querySelector('.grid-panel').dataset.screen = 'audio'; });
+  await page.waitForTimeout(350);
   await page.evaluate((devices) => {
     window.renderAudio({
       output: { current: 'X', id: 'o' },

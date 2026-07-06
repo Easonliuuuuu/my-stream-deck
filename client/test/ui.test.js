@@ -47,14 +47,25 @@ after(async () => {
   serverProcess?.kill();
 });
 
+const DEFAULT_KEYS = [
+  { id: 'audio',       label: 'Audio',       icon: 'audio',       action: 'nav',    payload: 'audio',       color: 'audio' },
+  { id: 'controller',  label: 'Controller',  icon: 'controller',  action: 'nav',    payload: 'controller',  color: 'controller' },
+  { id: 'performance', label: 'Performance', icon: 'performance', action: 'nav',    payload: 'performance', color: 'performance' },
+  { id: 'spotify',     label: 'Spotify',     icon: 'spotify',     action: 'launch', payload: 'spotify',     color: 'spotify' },
+  { id: 'discord',     label: 'Discord',     icon: 'discord',     action: 'launch', payload: 'discord',     color: 'discord' },
+  { id: 'steam',       label: 'Steam',       icon: 'steam',       action: 'launch', payload: 'steam',       color: 'steam' },
+];
+
 async function newAppPage(viewport) {
   const page = await browser.newPage({ viewport });
   await page.goto(BASE_URL);
-  await page.evaluate(() => {
+  await page.evaluate((keys) => {
     document.getElementById('pin-screen').hidden = true;
     document.getElementById('app-backdrop').hidden = false;
     document.getElementById('app').hidden = false;
-  });
+    // Populate the grid so tiles exist without a real server auth round-trip.
+    window.renderKeyGrid(keys);
+  }, DEFAULT_KEYS);
   return page;
 }
 
@@ -65,6 +76,9 @@ function fakeDevices(n, prefix) {
 test('portrait: scrolling a long device list does not scroll the document', async () => {
   const page = await newAppPage({ width: 390, height: 844 });
   await page.evaluate(() => { document.getElementById('stack').dataset.screen = 'audio'; });
+  // The screen slides in over 320ms — wait for the transition to finish before
+  // wheeling, otherwise the element is still off-screen and the scroll misses it.
+  await page.waitForTimeout(350);
   await page.evaluate((devices) => {
     window.renderAudio({
       output: { current: 'X', id: 'o' },
@@ -91,6 +105,7 @@ test('portrait: scrolling a long device list does not scroll the document', asyn
 test('landscape: scrolling a long device list does not scroll the document', async () => {
   const page = await newAppPage({ width: 844, height: 390 });
   await page.evaluate(() => { document.querySelector('.grid-panel').dataset.screen = 'audio'; });
+  await page.waitForTimeout(350);
   await page.evaluate((devices) => {
     window.renderAudio({
       output: { current: 'X', id: 'o' },
@@ -106,7 +121,7 @@ test('landscape: scrolling a long device list does not scroll the document', asy
 
   const docScrollTop = await page.evaluate(() => document.scrollingElement.scrollTop);
   const innerScrollTop = await page.evaluate(
-    () => document.querySelector('.grid-panel[data-screen="audio"] .detail-inner').scrollTop
+    () => document.querySelector('.grid-panel[data-screen="audio"] .grid-screen[data-id="audio"] .detail-inner').scrollTop
   );
 
   assert.equal(docScrollTop, 0, 'document should never scroll');

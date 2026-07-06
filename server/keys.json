@@ -1,0 +1,8 @@
+[
+  { "id": "audio",       "label": "Audio",       "icon": "audio",       "action": "nav",    "payload": "audio",       "color": "audio" },
+  { "id": "controller",  "label": "Controller",  "icon": "controller",  "action": "nav",    "payload": "controller",  "color": "controller" },
+  { "id": "performance", "label": "Performance", "icon": "performance", "action": "nav",    "payload": "performance", "color": "performance" },
+  { "id": "spotify",     "label": "Spotify",     "icon": "spotify",     "action": "launch", "payload": "spotify",     "color": "spotify" },
+  { "id": "discord",     "label": "Discord",     "icon": "discord",     "action": "launch", "payload": "discord",     "color": "discord" },
+  { "id": "steam",       "label": "Steam",       "icon": "steam",       "action": "launch", "payload": "steam",       "color": "steam" }
+]

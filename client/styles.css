@@ -175,7 +175,8 @@ button:focus-visible {
 
 .stack[data-screen="audio"] .screen[data-id="audio"],
 .stack[data-screen="controller"] .screen[data-id="controller"],
-.stack[data-screen="performance"] .screen[data-id="performance"] {
+.stack[data-screen="performance"] .screen[data-id="performance"],
+.stack[data-screen="settings"] .screen[data-id="settings"] {
   transform: translateX(0);
   opacity: 1;
   pointer-events: auto;
@@ -296,6 +297,8 @@ button:focus-visible {
 .app.spotify .icon { --glow: var(--glow-spotify); }
 .app.discord .icon { --glow: var(--glow-discord); }
 .app.steam .icon { --glow: var(--glow-steam); }
+.app.settings .icon { --glow: var(--warn); }
+.app.default .icon { --glow: var(--azure); }
 .app .icon svg { width: 24px; height: 24px; stroke: var(--glow); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--glow) 60%, transparent)); }
 
 .app .lbl {
@@ -503,7 +506,8 @@ button:focus-visible {
   .grid-panel[data-screen="grid"] .grid-screen.grid { transform: translateX(0); opacity: 1; }
   .grid-panel:not([data-screen="grid"]) .grid-screen.grid { transform: translateX(-24px); opacity: 0; pointer-events: none; }
   .grid-panel[data-screen="audio"] .grid-screen[data-id="audio"],
-  .grid-panel[data-screen="controller"] .grid-screen[data-id="controller"] {
+  .grid-panel[data-screen="controller"] .grid-screen[data-id="controller"],
+  .grid-panel[data-screen="settings"] .grid-screen[data-id="settings"] {
     transform: translateX(0); opacity: 1; pointer-events: auto;
   }
 
@@ -538,10 +542,12 @@ button:focus-visible {
 
   .tile.audio .icon { --glow: var(--glow-audio); }
   .tile.controller .icon { --glow: var(--glow-controller); }
+  .tile.performance .icon { --glow: var(--glow-performance); }
   .tile.spotify .icon { --glow: var(--glow-spotify); }
   .tile.discord .icon { --glow: var(--glow-discord); }
   .tile.steam .icon { --glow: var(--glow-steam); }
-  .tile.settings .icon { --glow: var(--glow-performance); }
+  .tile.settings .icon { --glow: var(--warn); }
+  .tile.default .icon { --glow: var(--azure); }
 
   .detail-inner {
     height: 100%;
@@ -575,3 +581,115 @@ button:focus-visible {
   .ring-sm .pct { font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; font-family: var(--mono); }
   .ring-caption { font-size: 11px; color: var(--ink-dim); text-align: center; margin-top: 6px; }
 }
+
+/* Settings editor — shared by portrait and landscape containers */
+#settings-portrait,
+#settings-landscape {
+  padding-bottom: 8px;
+}
+
+.settings-empty {
+  font-size: 13px; color: var(--ink-dim); text-align: center;
+  padding: 20px 0 16px;
+}
+
+.settings-key-list { margin-bottom: 10px; }
+
+.key-card {
+  background: var(--key-face); border-radius: 14px;
+  padding: 11px 12px; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 10px;
+}
+.key-card-icon {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: var(--screen-bg); border: 1px solid var(--screen-border);
+  display: flex; align-items: center; justify-content: center; flex: none;
+}
+.key-card-icon svg { width: 16px; height: 16px; stroke: var(--ink-dim); }
+.kc-audio svg { stroke: var(--glow-audio); }
+.kc-controller svg { stroke: var(--glow-controller); }
+.kc-performance svg { stroke: var(--glow-performance); }
+.kc-spotify svg { stroke: var(--glow-spotify); }
+.kc-discord svg { stroke: var(--glow-discord); }
+.kc-steam svg { stroke: var(--glow-steam); }
+.kc-settings svg, .kc-default svg { stroke: var(--azure); }
+
+.key-card-info { flex: 1; min-width: 0; overflow: hidden; }
+.key-card-label { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.key-card-action {
+  display: inline-block; margin-top: 3px;
+  font-size: 11px; color: var(--ink-dim);
+  background: rgba(255,255,255,0.06); border-radius: 5px; padding: 1px 6px;
+}
+
+.key-card-actions { display: flex; gap: 2px; flex: none; }
+.key-card-btn {
+  background: none; border: none; color: var(--ink-dim);
+  width: 28px; height: 28px; border-radius: 8px; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.1s ease, color 0.1s ease;
+}
+.key-card-btn:disabled { opacity: 0.25; pointer-events: none; }
+.key-card-btn:active { background: rgba(255,255,255,0.1); color: var(--ink); }
+.key-card-btn-del:active { color: #ff9a8b; }
+
+.settings-add-btn {
+  display: block; width: 100%;
+  font-size: 14px; padding: 12px; border-radius: 14px; margin-bottom: 10px;
+  border: 1px dashed rgba(255,255,255,0.15); background: none; color: var(--ink-dim);
+  transition: border-color 0.12s ease, color 0.12s ease;
+}
+.settings-add-btn:active { border-color: var(--azure); color: var(--azure); }
+
+.settings-save-btn {
+  display: block; width: 100%;
+  font-size: 15px; font-weight: 600; padding: 13px; border-radius: 14px;
+  border: none; background: var(--azure); color: #0b0d12;
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+.settings-save-btn:active { transform: scale(0.97); opacity: 0.88; }
+
+.key-edit-form {
+  background: var(--screen-bg); border: 1px solid var(--screen-border);
+  box-shadow: inset 0 1px 4px rgba(0,0,0,0.45);
+  border-radius: 16px; padding: 16px;
+}
+.edit-form-title { font-size: 16px; font-weight: 650; margin: 0 0 16px; }
+
+.form-row { margin-bottom: 12px; }
+.form-row label {
+  display: block; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--ink-dim); margin-bottom: 5px;
+}
+.form-row input,
+.form-row select {
+  width: 100%; font-size: 14px; padding: 11px 12px;
+  border-radius: 11px; border: 1px solid var(--screen-border);
+  background: var(--key-face); color: var(--ink);
+  font-family: inherit; -webkit-appearance: none; appearance: none;
+  transition: border-color 0.15s ease;
+}
+.form-row select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238d96a3' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+  padding-right: 32px;
+}
+.form-row input:focus,
+.form-row select:focus {
+  outline: none; border-color: var(--azure);
+}
+
+.form-actions { display: flex; gap: 8px; margin-top: 18px; }
+.btn-ghost {
+  flex: 1; font-size: 14px; font-weight: 500; padding: 11px; border-radius: 12px;
+  border: 1px solid var(--screen-border); background: none; color: var(--ink);
+  font-family: inherit; transition: background 0.1s ease;
+}
+.btn-ghost:active { background: rgba(255,255,255,0.08); }
+.btn-primary {
+  flex: 1; font-size: 14px; font-weight: 600; padding: 11px; border-radius: 12px;
+  border: none; background: var(--azure); color: #0b0d12;
+  font-family: inherit; transition: transform 0.1s ease, opacity 0.1s ease;
+}
+.btn-primary:active { transform: scale(0.97); opacity: 0.88; }

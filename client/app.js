@@ -408,7 +408,7 @@ function renderDevicePicker(containerClass, devices, currentId, kind) {
       btn.className = 'device';
       const isCurrent = device.id === currentId;
       if (isCurrent) btn.classList.add('current');
-      btn.innerHTML = `<span>${device.name}</span>${isCurrent ? '<span class="check"></span>' : ''}`;
+      btn.innerHTML = `<span>${esc(device.name)}</span>${isCurrent ? '<span class="check"></span>' : ''}`;
       btn.addEventListener('click', () => {
         state.ws.send(JSON.stringify({ type: 'command', action: 'setAudioDevice', id: device.id, kind }));
       });

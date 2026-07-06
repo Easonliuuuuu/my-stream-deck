@@ -105,7 +105,9 @@ function renderKeyGrid(keys) {
 
 async function fetchAndRenderKeys() {
   try {
-    const res = await fetch(`http://${state.server}/keys`);
+    const res = await fetch(`http://${state.server}/keys`, {
+      headers: { 'Authorization': `Bearer ${state.token}` },
+    });
     if (res.ok) currentKeys = await res.json();
   } catch {
     // keep whatever is in currentKeys

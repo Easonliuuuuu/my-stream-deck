@@ -7,6 +7,13 @@ const state = {
   systemLoad: null,
 };
 
+// Keeps the phone's screen from sleeping while the app is open. Falls back to
+// a looping video on iOS since the server is plain http on the LAN, which
+// doesn't qualify as a secure context for the native Wake Lock API — and that
+// fallback needs a real user gesture to start, hence the one-time click below.
+const noSleep = new NoSleep();
+document.addEventListener('click', () => noSleep.enable().catch(() => {}), { once: true });
+
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js');
 }

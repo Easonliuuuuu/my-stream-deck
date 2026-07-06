@@ -507,6 +507,7 @@ button:focus-visible {
   .grid-panel:not([data-screen="grid"]) .grid-screen.grid { transform: translateX(-24px); opacity: 0; pointer-events: none; }
   .grid-panel[data-screen="audio"] .grid-screen[data-id="audio"],
   .grid-panel[data-screen="controller"] .grid-screen[data-id="controller"],
+  .grid-panel[data-screen="performance"] .grid-screen[data-id="performance"],
   .grid-panel[data-screen="settings"] .grid-screen[data-id="settings"] {
     transform: translateX(0); opacity: 1; pointer-events: auto;
   }

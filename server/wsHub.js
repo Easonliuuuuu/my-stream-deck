@@ -6,6 +6,7 @@ const { sendMediaKey } = require('./services/mediaKeys');
 const { getControllerState } = require('./services/controllerBattery');
 const { launchApp } = require('./services/appLauncher');
 const { getSystemLoad } = require('./services/systemLoad');
+const { invokeSystemAction } = require('./services/systemAction');
 
 function attach(server) {
   const wss = new WebSocket.Server({ server });
@@ -117,6 +118,9 @@ function attach(server) {
             break;
           case 'launchApp':
             await launchApp(msg.appId);
+            break;
+          case 'systemAction':
+            await invokeSystemAction(msg.payload);
             break;
           default:
             ws.send(JSON.stringify({ type: 'error', message: `Unknown command action: ${msg.action}` }));

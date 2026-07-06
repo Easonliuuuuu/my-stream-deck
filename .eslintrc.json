@@ -1,6 +1,7 @@
 {
   "root": true,
   "extends": "eslint:recommended",
+  "ignorePatterns": ["client/vendor/**"],
   "parserOptions": {
     "ecmaVersion": 2022
   },
@@ -28,6 +29,9 @@
       "env": {
         "browser": true,
         "es2022": true
+      },
+      "globals": {
+        "NoSleep": "readonly"
       }
     },
     {

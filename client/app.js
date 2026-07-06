@@ -105,7 +105,9 @@ function renderKeyGrid(keys) {
 
 async function fetchAndRenderKeys() {
   try {
-    const res = await fetch(`http://${state.server}/keys`);
+    const res = await fetch(`http://${state.server}/keys`, {
+      headers: { 'Authorization': `Bearer ${state.token}` },
+    });
     if (res.ok) currentKeys = await res.json();
   } catch {
     // keep whatever is in currentKeys
@@ -408,7 +410,7 @@ function renderDevicePicker(containerClass, devices, currentId, kind) {
       btn.className = 'device';
       const isCurrent = device.id === currentId;
       if (isCurrent) btn.classList.add('current');
-      btn.innerHTML = `<span>${device.name}</span>${isCurrent ? '<span class="check"></span>' : ''}`;
+      btn.innerHTML = `<span>${esc(device.name)}</span>${isCurrent ? '<span class="check"></span>' : ''}`;
       btn.addEventListener('click', () => {
         state.ws.send(JSON.stringify({ type: 'command', action: 'setAudioDevice', id: device.id, kind }));
       });

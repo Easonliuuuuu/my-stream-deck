@@ -1,5 +1,5 @@
-const CACHE_NAME = 'stream-deck-shell-v3';
-const SHELL_FILES = ['/', '/index.html', '/styles.css', '/app.js', '/manifest.json'];
+const CACHE_NAME = 'stream-deck-shell-v4';
+const SHELL_FILES = ['/', '/index.html', '/styles.css', '/app.js', '/manifest.json', '/vendor/nosleep.min.js'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL_FILES)));

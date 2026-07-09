@@ -346,6 +346,8 @@ function connect(server, token) {
 
     if (msg.type === 'auth') {
       if (msg.ok) {
+        state.server = server;
+        state.token = token;
         localStorage.setItem('sd-server', server);
         localStorage.setItem('sd-token', token);
         document.getElementById('pin-screen').hidden = true;

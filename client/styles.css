@@ -273,38 +273,36 @@ button:focus-visible {
 }
 
 .app .icon {
-  width: 56px; height: 56px; border-radius: 15px;
-  background: var(--key-face);
+  width: 56px; height: 56px; border-radius: 10px;
+  background: var(--glow);
   display: flex; align-items: center; justify-content: center;
   box-shadow:
-    0 0 18px -7px var(--glow),
-    inset 0 1px 0 var(--key-edge),
-    inset 0 -12px 16px -13px rgba(0, 0, 0, 0.55),
-    0 8px 18px -10px rgba(0, 0, 0, 0.55);
-  transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -10px 14px -8px rgba(0, 0, 0, 0.22),
+    0 3px 8px -4px rgba(0, 0, 0, 0.6);
+  transition: transform 0.08s ease, filter 0.08s ease, box-shadow 0.08s ease;
 }
 .app:active .icon {
-  transform: translateY(1px) scale(0.96);
-  filter: brightness(1.25);
+  transform: translateY(1px) scale(0.94);
+  filter: brightness(0.86);
   box-shadow:
-    0 0 26px -3px var(--glow),
-    inset 0 1px 0 var(--key-edge),
-    inset 0 -8px 14px -13px rgba(0, 0, 0, 0.5);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 6px 10px -6px rgba(0, 0, 0, 0.4);
 }
 
 .app.audio .icon { --glow: var(--glow-audio); }
-.app.controller .icon { --glow: var(--glow-controller); }
-.app.performance .icon { --glow: var(--glow-performance); }
-.app.spotify .icon { --glow: var(--glow-spotify); }
+.app.controller .icon { --glow: var(--glow-controller); --ink-icon: #0d201a; }
+.app.performance .icon { --glow: var(--glow-performance); --ink-icon: #241a06; }
+.app.spotify .icon { --glow: var(--glow-spotify); --ink-icon: #072012; }
 .app.discord .icon { --glow: var(--glow-discord); }
-.app.steam .icon { --glow: var(--glow-steam); }
-.app.settings .icon { --glow: var(--warn); }
+.app.steam .icon { --glow: var(--glow-steam); --ink-icon: #1b232c; }
+.app.settings .icon { --glow: var(--warn); --ink-icon: #241a06; }
 .app.default .icon { --glow: var(--azure); }
-.app .icon svg { width: 24px; height: 24px; stroke: var(--glow); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--glow) 60%, transparent)); }
+.app .icon svg { width: 25px; height: 25px; stroke: var(--ink-icon, #fbfbfa); stroke-width: 2; }
 
 .app .lbl {
-  font-size: 10px; font-weight: 600; color: var(--ink-dim);
-  text-transform: uppercase; letter-spacing: 0.07em;
+  font-family: var(--mono); font-size: 9.5px; font-weight: 500; color: var(--ink-dim);
+  text-transform: uppercase; letter-spacing: 0.08em;
 }
 .app .sub {
   font-size: 10.5px; color: var(--ink-dim);
@@ -516,39 +514,37 @@ button:focus-visible {
   .tile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; height: 100%; }
   .tile { background: none; border: none; color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
   .tile .icon {
-    width: 100%; aspect-ratio: 1; max-height: 62px; border-radius: 15px;
-    background: var(--key-face);
+    width: 100%; aspect-ratio: 1; max-height: 62px; border-radius: 10px;
+    background: var(--glow);
     display: flex; align-items: center; justify-content: center;
     box-shadow:
-      0 0 16px -7px var(--glow),
-      inset 0 1px 0 var(--key-edge),
-      inset 0 -10px 14px -12px rgba(0, 0, 0, 0.55),
-      0 8px 18px -10px rgba(0, 0, 0, 0.55);
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      inset 0 -8px 12px -8px rgba(0, 0, 0, 0.22),
+      0 3px 8px -4px rgba(0, 0, 0, 0.6);
     transition: transform 0.08s ease, filter 0.08s ease, box-shadow 0.08s ease;
   }
-  .tile .icon svg { width: 22px; height: 22px; stroke: var(--glow); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--glow) 60%, transparent)); }
+  .tile .icon svg { width: 23px; height: 23px; stroke: var(--ink-icon, #fbfbfa); stroke-width: 2; }
   .tile .lbl {
-    font-size: 10px; font-weight: 600; color: var(--ink-dim);
-    text-transform: uppercase; letter-spacing: 0.06em;
+    font-family: var(--mono); font-size: 9.5px; font-weight: 500; color: var(--ink-dim);
+    text-transform: uppercase; letter-spacing: 0.07em;
     transition: opacity 0.08s ease;
   }
   .tile:active .icon {
     transform: translateY(1px) scale(0.92);
-    filter: brightness(1.25);
+    filter: brightness(0.86);
     box-shadow:
-      0 0 22px -3px var(--glow),
-      inset 0 1px 0 var(--key-edge),
-      inset 0 -6px 12px -12px rgba(0, 0, 0, 0.5);
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 5px 9px -6px rgba(0, 0, 0, 0.4);
   }
   .tile:active .lbl { opacity: 0.6; }
 
   .tile.audio .icon { --glow: var(--glow-audio); }
-  .tile.controller .icon { --glow: var(--glow-controller); }
-  .tile.performance .icon { --glow: var(--glow-performance); }
-  .tile.spotify .icon { --glow: var(--glow-spotify); }
+  .tile.controller .icon { --glow: var(--glow-controller); --ink-icon: #0d201a; }
+  .tile.performance .icon { --glow: var(--glow-performance); --ink-icon: #241a06; }
+  .tile.spotify .icon { --glow: var(--glow-spotify); --ink-icon: #072012; }
   .tile.discord .icon { --glow: var(--glow-discord); }
-  .tile.steam .icon { --glow: var(--glow-steam); }
-  .tile.settings .icon { --glow: var(--warn); }
+  .tile.steam .icon { --glow: var(--glow-steam); --ink-icon: #1b232c; }
+  .tile.settings .icon { --glow: var(--warn); --ink-icon: #241a06; }
   .tile.default .icon { --glow: var(--azure); }
 
   .detail-inner {

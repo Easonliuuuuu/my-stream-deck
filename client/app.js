@@ -170,6 +170,32 @@ function handleKeyActivate(key) {
   sendCommand({ action: 'keyDown', context: key.context });
 }
 
+// Patches an existing key button's label/subtitle/icon in place — used both
+// by the initial grid build and by live render updates, so a poll tick for
+// one key (e.g. CPU% every few seconds) never touches any other key's DOM
+// node. Rebuilding the whole grid on every push was the original approach;
+// it replayed the `.icon`'s key-boot entrance animation on every key each
+// time, which is what read as constant flickering.
+function applyKeyDisplay(btn, display) {
+  const lbl = btn.querySelector('.lbl');
+  if (lbl) lbl.textContent = display.title;
+  else btn.insertAdjacentHTML('beforeend', `<span class="lbl">${esc(display.title)}</span>`);
+
+  let sub = btn.querySelector('.sub');
+  if (display.subtitle) {
+    if (!sub) {
+      sub = document.createElement('span');
+      sub.className = 'sub';
+      btn.appendChild(sub);
+    }
+    sub.textContent = display.subtitle;
+  } else if (sub) {
+    sub.remove();
+  }
+
+  applyImage(btn.querySelector('.icon'), display.image);
+}
+
 function renderGridInto(containerEl, folder, cssClass) {
   if (!containerEl) return;
   containerEl.innerHTML = '';
@@ -188,15 +214,12 @@ function renderGridInto(containerEl, folder, cssClass) {
   sortedKeyEntries(folder).forEach(([, key]) => {
     const display = keyDisplay(key);
     const btn = document.createElement('button');
+    btn.dataset.context = key.context;
     btn.className = `${cssClass} ${display.color}`;
-    btn.innerHTML = `
-      <div class="icon"></div>
-      <span class="lbl">${esc(display.title)}</span>
-      ${display.subtitle ? `<span class="sub">${esc(display.subtitle)}</span>` : ''}
-    `.trim();
-    applyImage(btn.querySelector('.icon'), display.image);
+    btn.innerHTML = '<div class="icon"></div>';
     btn.addEventListener('click', () => handleKeyActivate(key));
     containerEl.appendChild(btn);
+    applyKeyDisplay(btn, display);
   });
 }
 
@@ -205,6 +228,17 @@ function renderGrid() {
   if (!folder) return;
   renderGridInto(document.getElementById('app-grid'), folder, 'app');
   renderGridInto(document.getElementById('tile-grid'), folder, 'tile');
+}
+
+// Called for a single context when a render message arrives — patches just
+// that key's button(s) in both grids without rebuilding the rest.
+function updateKeyRender(context) {
+  const folder = currentFolder();
+  const key = Object.values(folder?.keys || {}).find((k) => k.context === context);
+  if (!key) return; // key isn't in the currently-viewed folder; nothing to patch
+  document.querySelectorAll(`[data-context="${context}"]`).forEach((btn) => {
+    applyKeyDisplay(btn, keyDisplay(key));
+  });
 }
 
 function reportVisibility() {
@@ -630,7 +664,7 @@ function connect(server, token) {
       const { context, ...patch } = msg;
       delete patch.type;
       state.renders.set(context, { ...(state.renders.get(context) || {}), ...patch });
-      renderGrid();
+      updateKeyRender(context);
       return;
     }
 

@@ -223,3 +223,27 @@ test('a new trivial action requires zero client-side changes to render correctly
   assert.equal(sub, 'Hello from a new action');
   await page.close();
 });
+
+test('a render push for one key patches its DOM node in place instead of rebuilding the grid', async () => {
+  // Regression test: updateKeyRender used to be a full renderGrid() call on
+  // every push, which recreated every key's button and replayed the
+  // `.icon`'s key-boot entrance animation — reported as constant flickering
+  // since audio/controller/performance poll every 1.5-4s. Tag every button
+  // with a marker the real code never sets; if a node gets recreated instead
+  // of patched, the marker is lost.
+  const page = await newAppPage({ width: 390, height: 844 });
+
+  await page.evaluate(() => {
+    document.querySelectorAll('[data-context]').forEach((el) => { el.dataset.testMarker = 'untouched'; });
+    window.state.renders.set('ctx-audio', { subtitle: 'Speakers' });
+    window.updateKeyRender('ctx-audio');
+  });
+
+  const markers = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-context]')].map((el) => el.dataset.testMarker));
+  assert.ok(markers.every((m) => m === 'untouched'), 'no key button should have been recreated by a single-context render push');
+
+  const sub = await page.locator('[data-context="ctx-audio"] .sub').first().textContent();
+  assert.equal(sub, 'Speakers');
+  await page.close();
+});

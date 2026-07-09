@@ -173,9 +173,7 @@ button:focus-visible {
   pointer-events: none;
 }
 
-.stack[data-screen="audio"] .screen[data-id="audio"],
-.stack[data-screen="controller"] .screen[data-id="controller"],
-.stack[data-screen="performance"] .screen[data-id="performance"],
+.stack[data-screen="panel"] .screen[data-id="panel"],
 .stack[data-screen="settings"] .screen[data-id="settings"] {
   transform: translateX(0);
   opacity: 1;
@@ -298,7 +296,25 @@ button:focus-visible {
 .app.steam .icon { --glow: var(--glow-steam); --ink-icon: #1b232c; }
 .app.settings .icon { --glow: var(--warn); --ink-icon: #241a06; }
 .app.default .icon { --glow: var(--azure); }
+.app.folder .icon { --glow: var(--ink-dim); --ink-icon: #14181f; }
 .app .icon svg { width: 25px; height: 25px; stroke: var(--ink-icon, #fbfbfa); stroke-width: 2; }
+
+/* Structured image badges pushed by an action (see design.md: setImage
+   accepts either a data URI or an {icon, badge} descriptor the client draws
+   itself, avoiding a server-side rasterization dependency). */
+.icon { position: relative; }
+.icon .badge-ring {
+  position: absolute; inset: -3px; border-radius: 50%; pointer-events: none;
+  background: conic-gradient(var(--mint) calc(var(--pct, 0%)), rgba(255, 255, 255, 0.15) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+}
+.icon .badge-text {
+  position: absolute; bottom: -5px; right: -5px; pointer-events: none;
+  font-family: var(--mono); font-size: 9px; font-weight: 700; line-height: 1;
+  background: var(--key-face); color: var(--ink); border-radius: 6px; padding: 2px 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
 
 .app .lbl {
   font-family: var(--mono); font-size: 9.5px; font-weight: 500; color: var(--ink-dim);
@@ -504,9 +520,7 @@ button:focus-visible {
   .grid-screen.detail { transform: translateX(24px); opacity: 0; pointer-events: none; }
   .grid-panel[data-screen="grid"] .grid-screen.grid { transform: translateX(0); opacity: 1; }
   .grid-panel:not([data-screen="grid"]) .grid-screen.grid { transform: translateX(-24px); opacity: 0; pointer-events: none; }
-  .grid-panel[data-screen="audio"] .grid-screen[data-id="audio"],
-  .grid-panel[data-screen="controller"] .grid-screen[data-id="controller"],
-  .grid-panel[data-screen="performance"] .grid-screen[data-id="performance"],
+  .grid-panel[data-screen="panel"] .grid-screen[data-id="panel"],
   .grid-panel[data-screen="settings"] .grid-screen[data-id="settings"] {
     transform: translateX(0); opacity: 1; pointer-events: auto;
   }
@@ -545,6 +559,7 @@ button:focus-visible {
   .tile.discord .icon { --glow: var(--glow-discord); }
   .tile.steam .icon { --glow: var(--glow-steam); --ink-icon: #1b232c; }
   .tile.settings .icon { --glow: var(--warn); --ink-icon: #241a06; }
+  .tile.folder .icon { --glow: var(--ink-dim); --ink-icon: #14181f; }
   .tile.default .icon { --glow: var(--azure); }
 
   .detail-inner {

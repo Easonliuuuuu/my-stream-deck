@@ -1,86 +1,76 @@
 const WebSocket = require('ws');
 const config = require('./config');
-const { getAudioState, setAudioDevice } = require('./services/audioDevices');
 const { getNowPlaying } = require('./services/nowPlaying');
 const { sendMediaKey } = require('./services/mediaKeys');
-const { getControllerState } = require('./services/controllerBattery');
-const { launchApp } = require('./services/appLauncher');
 const { getSystemLoad } = require('./services/systemLoad');
-const { invokeSystemAction } = require('./services/systemAction');
 
-function attach(server) {
+// `runtime` is created by the caller (index.js in production, tests
+// directly) and shared with the HTTP layer (app.js) so that a layout saved
+// over POST /layout and a key pressed over this WebSocket act on the same
+// live state.
+function attach(server, runtime) {
   const wss = new WebSocket.Server({ server });
-  const state = { audio: null, nowPlaying: null, controller: null, systemLoad: null };
 
-  function broadcastCard(card) {
-    const message = JSON.stringify({ type: 'state', card, payload: state[card] });
+  function broadcast(message) {
+    const payload = JSON.stringify(message);
     wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN && client.authed) client.send(message);
+      if (client.readyState === WebSocket.OPEN && client.authed) client.send(payload);
     });
   }
+  runtime.onRender(broadcast);
 
-  function sendSnapshot(ws) {
-    ws.send(JSON.stringify({ type: 'snapshot', payload: state }));
-  }
-
-  async function refreshAudio() {
-    try {
-      const next = await getAudioState();
-      if (JSON.stringify(next) !== JSON.stringify(state.audio)) {
-        state.audio = next;
-        broadcastCard('audio');
-      }
-    } catch (e) {
-      console.error('audio refresh failed:', e.message);
-    }
-  }
+  // now-playing (portrait now-strip / landscape info-panel) and the
+  // landscape info-panel's CPU/GPU/active-app readout are fixed UI chrome,
+  // not user-configurable keys — see design.md's "hybrid" decision. They
+  // keep their own always-on broadcast rather than going through the
+  // context/render protocol, which is gated by whether a key happens to be
+  // visible. (This does mean systemLoad may be polled twice — once here,
+  // once by the com.streamdeck.system.load action if the user has also
+  // placed a Performance key — accepted as the simplest way to keep the
+  // persistent panel truly independent of the grid's contents.)
+  let nowPlaying = null;
+  let systemLoad = null;
 
   async function refreshNowPlaying() {
     try {
       const next = await getNowPlaying();
-      if (JSON.stringify(next) !== JSON.stringify(state.nowPlaying)) {
-        state.nowPlaying = next;
-        broadcastCard('nowPlaying');
+      if (JSON.stringify(next) !== JSON.stringify(nowPlaying)) {
+        nowPlaying = next;
+        broadcast({ type: 'state', card: 'nowPlaying', payload: nowPlaying });
       }
     } catch (e) {
       console.error('now-playing refresh failed:', e.message);
     }
   }
 
-  function refreshController() {
-    try {
-      const next = getControllerState();
-      if (JSON.stringify(next) !== JSON.stringify(state.controller)) {
-        state.controller = next;
-        broadcastCard('controller');
-      }
-    } catch (e) {
-      console.error('controller refresh failed:', e.message);
-    }
-  }
-
   async function refreshSystemLoad() {
     try {
       const next = await getSystemLoad();
-      if (JSON.stringify(next) !== JSON.stringify(state.systemLoad)) {
-        state.systemLoad = next;
-        broadcastCard('systemLoad');
+      if (JSON.stringify(next) !== JSON.stringify(systemLoad)) {
+        systemLoad = next;
+        broadcast({ type: 'state', card: 'systemLoad', payload: systemLoad });
       }
     } catch (e) {
       console.error('system load refresh failed:', e.message);
     }
   }
 
-  const timers = [
-    setInterval(refreshAudio, config.poll.audioMs),
-    setInterval(refreshNowPlaying, config.poll.nowPlayingMs),
-    setInterval(refreshController, config.poll.controllerMs),
-    setInterval(refreshSystemLoad, config.poll.systemLoadMs),
-  ];
-  refreshAudio();
+  const nowPlayingTimer = setInterval(refreshNowPlaying, config.poll.nowPlayingMs);
+  const systemLoadTimer = setInterval(refreshSystemLoad, config.poll.systemLoadMs);
   refreshNowPlaying();
-  refreshController();
   refreshSystemLoad();
+
+  function sendSnapshot(ws) {
+    ws.send(JSON.stringify({
+      type: 'snapshot',
+      payload: {
+        layout: runtime.getLayout(),
+        renders: runtime.snapshotRenders(),
+        nowPlaying,
+        systemLoad,
+      },
+    }));
+  }
 
   wss.on('connection', (ws) => {
     ws.authed = false;
@@ -109,18 +99,22 @@ function attach(server) {
 
       try {
         switch (msg.action) {
+          case 'keyDown':
+            await runtime.keyDown(msg.context);
+            break;
+          case 'openPanel': {
+            const panel = await runtime.openPanel(msg.context);
+            ws.send(JSON.stringify({ type: 'panel', ...panel }));
+            break;
+          }
+          case 'panelAction':
+            await runtime.panelAction(msg.actionUuid, msg.name, msg.payload);
+            break;
+          case 'setVisibleContexts':
+            await runtime.setVisibleContexts(msg.contexts || []);
+            break;
           case 'mediaKey':
             await sendMediaKey(msg.key);
-            break;
-          case 'setAudioDevice':
-            await setAudioDevice(msg.id);
-            await refreshAudio();
-            break;
-          case 'launchApp':
-            await launchApp(msg.appId);
-            break;
-          case 'systemAction':
-            await invokeSystemAction(msg.payload);
             break;
           default:
             ws.send(JSON.stringify({ type: 'error', message: `Unknown command action: ${msg.action}` }));
@@ -132,7 +126,13 @@ function attach(server) {
   });
 
   function stop() {
-    timers.forEach(clearInterval);
+    clearInterval(nowPlayingTimer);
+    clearInterval(systemLoadTimer);
+    // Drives every currently-visible context's onWillDisappear, which is
+    // what tears down each action module's internal poll timer (see
+    // pollHelper.js) — without this, action-module intervals would outlive
+    // this server instance and leak across test runs / restarts.
+    runtime.setVisibleContexts([]);
     // wss.close()'s callback only fires once every client socket is fully
     // torn down; terminate them up front instead of waiting on a graceful
     // close handshake that may not complete promptly (matters for tests that
@@ -141,7 +141,7 @@ function attach(server) {
     wss.close();
   }
 
-  return { wss, stop };
+  return { wss, stop, runtime };
 }
 
 module.exports = { attach };

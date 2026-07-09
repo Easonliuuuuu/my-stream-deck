@@ -1,4 +1,8 @@
-const CACHE_NAME = 'stream-deck-shell-v4';
+// Bumped for the key-model rewrite: app.js now speaks a breaking wire
+// protocol (context-addressed renders instead of card broadcasts), so a
+// stale cached shell must not keep serving the old app.js against a new
+// server — see openspec/changes/elgato-parity-key-model.
+const CACHE_NAME = 'stream-deck-shell-v5';
 const SHELL_FILES = ['/', '/index.html', '/styles.css', '/app.js', '/manifest.json', '/vendor/nosleep.min.js'];
 
 self.addEventListener('install', (event) => {

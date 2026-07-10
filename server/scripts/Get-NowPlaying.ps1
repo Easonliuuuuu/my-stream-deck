@@ -46,6 +46,7 @@ try {
   $session = $manager.GetCurrentSession()
 
   if ($null -eq $session) {
+    [Console]::Error.WriteLine('Get-NowPlaying: no active SMTC session (GetCurrentSession returned null)')
     Write-Output '{}'
     exit
   }
@@ -54,6 +55,7 @@ try {
   $playback = $session.GetPlaybackInfo()
 }
 catch {
+  [Console]::Error.WriteLine("Get-NowPlaying: $($_.Exception.Message)")
   Write-Output '{}'
   exit
 }

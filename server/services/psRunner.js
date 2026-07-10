@@ -18,6 +18,12 @@ function runScript(scriptName, args = []) {
     cp.execFile('powershell.exe', psArgs, { windowsHide: true, maxBuffer: 8 * 1024 * 1024, timeout: 10000 }, (err, stdout, stderr) => {
       if (err) return reject(new Error(err.killed ? `${scriptName} timed out` : (stderr || err.message)));
 
+      // A script can exit 0 while still writing diagnostics to stderr (e.g.
+      // Get-NowPlaying.ps1 logging a caught exception before falling back to
+      // an idle '{}' result) — surface it instead of discarding it, since
+      // that's otherwise the only place the real cause is visible.
+      if (stderr && stderr.trim()) console.error(`${scriptName} stderr:`, stderr.trim());
+
       const text = stdout.trim();
       if (!text) return resolve(null);
 

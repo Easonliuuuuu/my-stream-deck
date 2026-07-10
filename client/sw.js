@@ -3,7 +3,7 @@
 // keeps serving whatever shell files are under CACHE_NAME forever until this
 // name itself changes — a content-only fix to app.js is otherwise invisible
 // on a phone that already installed a previous version.
-const CACHE_NAME = 'stream-deck-shell-v8';
+const CACHE_NAME = 'stream-deck-shell-v9';
 const SHELL_FILES = ['/', '/index.html', '/styles.css', '/app.js', '/manifest.json', '/vendor/nosleep.min.js'];
 
 self.addEventListener('install', (event) => {

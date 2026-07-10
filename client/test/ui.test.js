@@ -204,6 +204,27 @@ test('play/pause icon reflects actual playback state', async () => {
   await page.close();
 });
 
+test('applyNowPlaying renders real title/artist text and a sniffed-mime art background', async () => {
+  // Regression test: applyNowPlaying was previously only ever exercised with
+  // title/artist filled in but art: null, so a real base64 thumbnail (and
+  // the hardcoded image/png mime guess) had zero coverage.
+  const page = await newAppPage({ width: 390, height: 844 });
+  const jpegBase64 = '/9j/4AAQSkZJRgABAQAAAQABAAD/2wA=';
+
+  await page.evaluate((art) => {
+    window.applyNowPlaying({ title: 'Song Title', artist: 'The Artist', art, isPlaying: true });
+  }, jpegBase64);
+
+  const title = await page.locator('.track-title').first().textContent();
+  const artist = await page.locator('.track-artist').first().textContent();
+  const bg = await page.locator('.art').first().evaluate((el) => el.style.backgroundImage);
+
+  assert.equal(title, 'Song Title');
+  assert.equal(artist, 'The Artist');
+  assert.ok(bg.includes('data:image/jpeg;base64'), `expected a jpeg data URI, got: ${bg}`);
+  await page.close();
+});
+
 test('a new trivial action requires zero client-side changes to render correctly', async () => {
   // Acceptance criterion for the whole change (see tasks.md 8.6): the client
   // must render a key bound to an action it has never seen before, purely

@@ -43,10 +43,21 @@ function Await($WinRtTask, $ResultType) {
 # '{}' idle response a "no session" case already produces instead.
 try {
   $manager = Await ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager]::RequestAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager])
-  $session = $manager.GetCurrentSession()
+
+  # GetCurrentSession() is Windows' own heuristic for "the" session and is
+  # unreliable in practice - confirmed on real hardware it returns $null on
+  # the large majority of polls even while a browser tab is actively
+  # playing, whenever more than one session exists (e.g. a background app
+  # also holds one). GetSessions() returns all of them; picking the one
+  # that's actually Playing is what the OS's own media flyout effectively
+  # does, and is what actually reflects reality here.
+  $sessions = $manager.GetSessions()
+  $playingStatus = [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionPlaybackStatus]::Playing
+  $session = $sessions | Where-Object { $_.GetPlaybackInfo().PlaybackStatus -eq $playingStatus } | Select-Object -First 1
+  if ($null -eq $session) { $session = $sessions | Select-Object -First 1 }
 
   if ($null -eq $session) {
-    [Console]::Error.WriteLine('Get-NowPlaying: no active SMTC session (GetCurrentSession returned null)')
+    [Console]::Error.WriteLine('Get-NowPlaying: no SMTC session at all (GetSessions returned none)')
     Write-Output '{}'
     exit
   }
@@ -60,6 +71,16 @@ catch {
   exit
 }
 
+# Known limitation, confirmed on real hardware: even when $info.Thumbnail is
+# non-null, `New-Object Windows.Storage.Streams.DataReader($stream)` throws
+# ("Cannot convert ... System.__ComObject ... to type IInputStream") because
+# Windows PowerShell 5.1's WinRT projection doesn't expose the stream as a
+# strongly-typed IInputStream over late-bound COM the way it does for the
+# async calls elsewhere in this file. Reading the thumbnail bytes would need
+# lower-level COM interop (manual QueryInterface/marshaling) to work around
+# that, which isn't worth the fragility for what's a nice-to-have. The catch
+# below means this always resolves to $null today - title/artist/isPlaying
+# are unaffected.
 $artBase64 = $null
 if ($null -ne $info.Thumbnail) {
   try {

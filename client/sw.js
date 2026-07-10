@@ -1,8 +1,9 @@
-// Bumped for the key-model rewrite: app.js now speaks a breaking wire
-// protocol (context-addressed renders instead of card broadcasts), so a
-// stale cached shell must not keep serving the old app.js against a new
-// server — see openspec/changes/elgato-parity-key-model.
-const CACHE_NAME = 'stream-deck-shell-v5';
+// Bump this on every app.js/index.html/styles.css change, not just breaking
+// ones. The fetch handler below is cache-first, so an already-installed PWA
+// keeps serving whatever shell files are under CACHE_NAME forever until this
+// name itself changes — a content-only fix to app.js is otherwise invisible
+// on a phone that already installed a previous version.
+const CACHE_NAME = 'stream-deck-shell-v8';
 const SHELL_FILES = ['/', '/index.html', '/styles.css', '/app.js', '/manifest.json', '/vendor/nosleep.min.js'];
 
 self.addEventListener('install', (event) => {

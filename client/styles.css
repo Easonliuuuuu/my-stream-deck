@@ -254,50 +254,58 @@ button:focus-visible {
 .volume-row .key { width: 30px; height: 30px; font-size: 20px; font-weight: 300; }
 .volume-row .key svg { width: 19px; height: 19px; stroke: var(--ink); }
 
-/* App icon grid */
+/* App icon grid — "key-face" tiles: the whole button is the colored key
+   surface (like a physical Stream Deck key), not a small icon sitting above
+   a label. Label/subtitle are an overlay pinned to the bottom of the tile
+   on a gradient scrim, so the tile reads as one big button rather than an
+   icon + caption pair. */
 .app-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 14px 12px;
+  gap: 10px;
   padding: 2px 2px;
   flex: 1;
   align-content: start;
 }
 
 .app {
-  background: none; border: none; color: var(--ink);
-  display: flex; flex-direction: column; align-items: center; gap: 7px;
-  min-width: 0; width: 100%;
-}
-
-.app .icon {
-  width: 56px; height: 56px; border-radius: 10px;
+  position: relative;
+  border: none; color: var(--ink);
+  min-width: 0; width: 100%; aspect-ratio: 1;
+  border-radius: 18px;
   background: var(--glow);
-  display: flex; align-items: center; justify-content: center;
+  display: flex; flex-direction: column; align-items: stretch; justify-content: flex-end;
+  overflow: hidden;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    inset 0 -10px 14px -8px rgba(0, 0, 0, 0.22),
-    0 3px 8px -4px rgba(0, 0, 0, 0.6);
+    inset 0 -16px 22px -10px rgba(0, 0, 0, 0.25),
+    0 4px 10px -4px rgba(0, 0, 0, 0.6);
   transition: transform 0.08s ease, filter 0.08s ease, box-shadow 0.08s ease;
 }
-.app:active .icon {
-  transform: translateY(1px) scale(0.94);
+.app:active {
+  transform: scale(0.95);
   filter: brightness(0.86);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    inset 0 6px 10px -6px rgba(0, 0, 0, 0.4);
+    inset 0 8px 14px -8px rgba(0, 0, 0, 0.4);
 }
 
-.app.audio .icon { --glow: var(--glow-audio); }
-.app.controller .icon { --glow: var(--glow-controller); --ink-icon: #0d201a; }
-.app.performance .icon { --glow: var(--glow-performance); --ink-icon: #241a06; }
-.app.spotify .icon { --glow: var(--glow-spotify); --ink-icon: #072012; }
-.app.discord .icon { --glow: var(--glow-discord); }
-.app.steam .icon { --glow: var(--glow-steam); --ink-icon: #1b232c; }
-.app.settings .icon { --glow: var(--warn); --ink-icon: #241a06; }
-.app.default .icon { --glow: var(--azure); }
-.app.folder .icon { --glow: var(--ink-dim); --ink-icon: #14181f; }
-.app .icon svg { width: 25px; height: 25px; stroke: var(--ink-icon, #fbfbfa); stroke-width: 2; }
+.app.audio { --glow: var(--glow-audio); }
+.app.controller { --glow: var(--glow-controller); --ink-icon: #0d201a; }
+.app.performance { --glow: var(--glow-performance); --ink-icon: #241a06; }
+.app.spotify { --glow: var(--glow-spotify); --ink-icon: #072012; }
+.app.discord { --glow: var(--glow-discord); }
+.app.steam { --glow: var(--glow-steam); --ink-icon: #1b232c; }
+.app.settings { --glow: var(--warn); --ink-icon: #241a06; }
+.app.default { --glow: var(--azure); }
+.app.folder { --glow: var(--ink-dim); --ink-icon: #14181f; }
+
+.app .icon {
+  position: relative;
+  flex: 1; width: 100%;
+  display: flex; align-items: center; justify-content: center;
+}
+.app .icon svg { width: 38%; height: 38%; stroke: var(--ink-icon, #fbfbfa); stroke-width: 2; }
 
 /* Structured image badges pushed by an action (see design.md: setImage
    accepts either a data URI or an {icon, badge} descriptor the client draws
@@ -317,16 +325,24 @@ button:focus-visible {
 }
 
 .app .lbl {
-  font-family: var(--mono); font-size: 9.5px; font-weight: 500; color: var(--ink-dim);
-  text-transform: uppercase; letter-spacing: 0.08em;
-}
-.app .sub {
-  font-size: 10.5px; color: var(--ink-dim);
-  font-variant-numeric: tabular-nums;
-  font-family: var(--mono);
-  max-width: 100%;
+  flex: none; width: 100%;
+  padding: 5px 6px 2px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.08));
+  font-family: var(--mono); font-size: 9.5px; font-weight: 600; color: var(--ink);
+  text-transform: uppercase; letter-spacing: 0.06em; text-align: center;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+.app .sub {
+  flex: none; width: 100%;
+  padding: 0 6px 7px;
+  background: rgba(0, 0, 0, 0.28);
+  font-size: 9px; color: rgba(255, 255, 255, 0.75);
+  font-variant-numeric: tabular-nums;
+  font-family: var(--mono);
+  text-align: center;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.app .lbl:last-child { padding-bottom: 7px; }
 
 /* Boot light-up: keys fade in from dark in a quick staggered sequence,
    like a physical Stream Deck powering on, instead of a flat reveal. */
@@ -335,18 +351,18 @@ button:focus-visible {
   60% { opacity: 1; transform: scale(1.04); }
   100% { opacity: 1; transform: scale(1); filter: brightness(1); }
 }
-.app .icon, .tile .icon {
+.app, .tile {
   animation: key-boot 0.4s cubic-bezier(.2, .9, .3, 1.2) backwards;
 }
-.app:nth-child(1) .icon, .tile:nth-child(1) .icon { animation-delay: 0ms; }
-.app:nth-child(2) .icon, .tile:nth-child(2) .icon { animation-delay: 40ms; }
-.app:nth-child(3) .icon, .tile:nth-child(3) .icon { animation-delay: 80ms; }
-.app:nth-child(4) .icon, .tile:nth-child(4) .icon { animation-delay: 120ms; }
-.app:nth-child(5) .icon, .tile:nth-child(5) .icon { animation-delay: 160ms; }
-.app:nth-child(6) .icon, .tile:nth-child(6) .icon { animation-delay: 200ms; }
+.app:nth-child(1), .tile:nth-child(1) { animation-delay: 0ms; }
+.app:nth-child(2), .tile:nth-child(2) { animation-delay: 40ms; }
+.app:nth-child(3), .tile:nth-child(3) { animation-delay: 80ms; }
+.app:nth-child(4), .tile:nth-child(4) { animation-delay: 120ms; }
+.app:nth-child(5), .tile:nth-child(5) { animation-delay: 160ms; }
+.app:nth-child(6), .tile:nth-child(6) { animation-delay: 200ms; }
 
 @media (prefers-reduced-motion: reduce) {
-  .app .icon, .tile .icon { animation: none; }
+  .app, .tile { animation: none; }
 }
 
 /* Detail screens */
@@ -525,42 +541,64 @@ button:focus-visible {
     transform: translateX(0); opacity: 1; pointer-events: auto;
   }
 
-  .tile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; height: 100%; }
-  .tile { background: none; border: none; color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
-  .tile .icon {
-    width: 100%; aspect-ratio: 1; max-height: 62px; border-radius: 10px;
-    background: var(--glow);
-    display: flex; align-items: center; justify-content: center;
+  /* Same key-face treatment as the portrait .app-grid: rows stretch to fill
+     the available height (grid-auto-rows: 1fr) rather than forcing a strict
+     aspect-ratio, since landscape has much less vertical room to work with. */
+  .tile-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; gap: 8px; height: 100%; }
+  .tile {
+    position: relative;
+    background: var(--glow); border: none; color: var(--ink);
+    border-radius: 14px; overflow: hidden;
+    display: flex; flex-direction: column; align-items: stretch; justify-content: flex-end;
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.35),
-      inset 0 -8px 12px -8px rgba(0, 0, 0, 0.22),
+      inset 0 -10px 14px -8px rgba(0, 0, 0, 0.22),
       0 3px 8px -4px rgba(0, 0, 0, 0.6);
     transition: transform 0.08s ease, filter 0.08s ease, box-shadow 0.08s ease;
   }
-  .tile .icon svg { width: 23px; height: 23px; stroke: var(--ink-icon, #fbfbfa); stroke-width: 2; }
+  .tile .icon {
+    flex: 1; width: 100%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tile .icon svg { width: 30%; height: 30%; stroke: var(--ink-icon, #fbfbfa); stroke-width: 2; }
   .tile .lbl {
-    font-family: var(--mono); font-size: 9.5px; font-weight: 500; color: var(--ink-dim);
-    text-transform: uppercase; letter-spacing: 0.07em;
+    flex: none; width: 100%;
+    padding: 4px 5px 2px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.08));
+    font-family: var(--mono); font-size: 9px; font-weight: 600; color: var(--ink);
+    text-transform: uppercase; letter-spacing: 0.05em; text-align: center;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     transition: opacity 0.08s ease;
   }
-  .tile:active .icon {
-    transform: translateY(1px) scale(0.92);
+  .tile .lbl:last-child { padding-bottom: 5px; }
+  .tile .sub {
+    flex: none; width: 100%;
+    padding: 0 5px 4px;
+    background: rgba(0, 0, 0, 0.28);
+    font-size: 8px; color: rgba(255, 255, 255, 0.7);
+    font-variant-numeric: tabular-nums;
+    font-family: var(--mono);
+    text-align: center;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .tile:active {
+    transform: scale(0.95);
     filter: brightness(0.86);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.2),
       inset 0 5px 9px -6px rgba(0, 0, 0, 0.4);
   }
-  .tile:active .lbl { opacity: 0.6; }
+  .tile:active .lbl { opacity: 0.75; }
 
-  .tile.audio .icon { --glow: var(--glow-audio); }
-  .tile.controller .icon { --glow: var(--glow-controller); --ink-icon: #0d201a; }
-  .tile.performance .icon { --glow: var(--glow-performance); --ink-icon: #241a06; }
-  .tile.spotify .icon { --glow: var(--glow-spotify); --ink-icon: #072012; }
-  .tile.discord .icon { --glow: var(--glow-discord); }
-  .tile.steam .icon { --glow: var(--glow-steam); --ink-icon: #1b232c; }
-  .tile.settings .icon { --glow: var(--warn); --ink-icon: #241a06; }
-  .tile.folder .icon { --glow: var(--ink-dim); --ink-icon: #14181f; }
-  .tile.default .icon { --glow: var(--azure); }
+  .tile.audio { --glow: var(--glow-audio); }
+  .tile.controller { --glow: var(--glow-controller); --ink-icon: #0d201a; }
+  .tile.performance { --glow: var(--glow-performance); --ink-icon: #241a06; }
+  .tile.spotify { --glow: var(--glow-spotify); --ink-icon: #072012; }
+  .tile.discord { --glow: var(--glow-discord); }
+  .tile.steam { --glow: var(--glow-steam); --ink-icon: #1b232c; }
+  .tile.settings { --glow: var(--warn); --ink-icon: #241a06; }
+  .tile.folder { --glow: var(--ink-dim); --ink-icon: #14181f; }
+  .tile.default { --glow: var(--azure); }
 
   .detail-inner {
     height: 100%;
@@ -613,19 +651,26 @@ button:focus-visible {
   padding: 11px 12px; margin-bottom: 8px;
   display: flex; align-items: center; gap: 10px;
 }
+/* Same key-face language as the home grid tiles, scaled down for a list
+   row: a solid colored square instead of a dark slot with a tinted glyph. */
 .key-card-icon {
-  width: 34px; height: 34px; border-radius: 10px;
-  background: var(--screen-bg); border: 1px solid var(--screen-border);
+  width: 40px; height: 40px; border-radius: 11px;
+  background: var(--glow, var(--screen-bg));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -6px 9px -6px rgba(0, 0, 0, 0.25),
+    0 2px 5px -2px rgba(0, 0, 0, 0.5);
   display: flex; align-items: center; justify-content: center; flex: none;
 }
-.key-card-icon svg { width: 16px; height: 16px; stroke: var(--ink-dim); }
-.kc-audio svg { stroke: var(--glow-audio); }
-.kc-controller svg { stroke: var(--glow-controller); }
-.kc-performance svg { stroke: var(--glow-performance); }
-.kc-spotify svg { stroke: var(--glow-spotify); }
-.kc-discord svg { stroke: var(--glow-discord); }
-.kc-steam svg { stroke: var(--glow-steam); }
-.kc-settings svg, .kc-default svg { stroke: var(--azure); }
+.key-card-icon svg { width: 18px; height: 18px; stroke: var(--ink-icon, #fbfbfa); stroke-width: 2; }
+.kc-audio { --glow: var(--glow-audio); }
+.kc-controller { --glow: var(--glow-controller); --ink-icon: #0d201a; }
+.kc-performance { --glow: var(--glow-performance); --ink-icon: #241a06; }
+.kc-spotify { --glow: var(--glow-spotify); --ink-icon: #072012; }
+.kc-discord { --glow: var(--glow-discord); }
+.kc-steam { --glow: var(--glow-steam); --ink-icon: #1b232c; }
+.kc-settings { --glow: var(--warn); --ink-icon: #241a06; }
+.kc-default { --glow: var(--azure); }
 
 .key-card-info { flex: 1; min-width: 0; overflow: hidden; }
 .key-card-label { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

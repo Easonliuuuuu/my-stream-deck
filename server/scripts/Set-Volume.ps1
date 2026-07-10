@@ -20,7 +20,12 @@ if ($Action -eq 'Mute') {
   Set-AudioDevice -PlaybackMute (-not $current) | Out-Null
 } else {
   $delta = if ($Action -eq 'Up') { $Step } else { -$Step }
-  $volume = Get-AudioDevice -PlaybackVolume
+  # Get-AudioDevice -PlaybackVolume returns a formatted string like "94%",
+  # not a number - $volume + $delta was silently doing string concatenation
+  # ("94%" + 2 -> "94%2"), which [Math]::Max then failed to convert to
+  # Int32. Strip everything but digits/decimal point and parse explicitly.
+  $volumeRaw = Get-AudioDevice -PlaybackVolume
+  $volume = [double]($volumeRaw -replace '[^\d.]', '')
   $newVolume = [Math]::Min(100, [Math]::Max(0, $volume + $delta))
   Set-AudioDevice -PlaybackVolume $newVolume | Out-Null
 }

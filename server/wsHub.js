@@ -30,8 +30,14 @@ function attach(server, runtime) {
   // persistent panel truly independent of the grid's contents.)
   let nowPlaying = null;
   let systemLoad = null;
+  // Guards against a slow/hung poll (see psRunner's execFile timeout) piling
+  // up concurrent powershell.exe calls every 1.5s on top of one that hasn't
+  // finished yet.
+  let nowPlayingInFlight = false;
 
   async function refreshNowPlaying() {
+    if (nowPlayingInFlight) return;
+    nowPlayingInFlight = true;
     try {
       const next = await getNowPlaying();
       if (JSON.stringify(next) !== JSON.stringify(nowPlaying)) {
@@ -40,6 +46,8 @@ function attach(server, runtime) {
       }
     } catch (e) {
       console.error('now-playing refresh failed:', e.message);
+    } finally {
+      nowPlayingInFlight = false;
     }
   }
 

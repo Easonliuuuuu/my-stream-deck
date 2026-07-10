@@ -700,10 +700,21 @@ function setText(className, text) {
   document.querySelectorAll(`.${className}`).forEach((el) => { el.textContent = text; });
 }
 
+// SMTC thumbnails aren't always PNG (JPEG is common); sniff the actual
+// format from the base64 header instead of assuming one, since a wrong
+// declared mime type is a real (if browser-tolerant) correctness bug.
+function sniffImageMime(base64) {
+  if (base64.startsWith('iVBORw0KGgo')) return 'image/png';
+  if (base64.startsWith('/9j/')) return 'image/jpeg';
+  if (base64.startsWith('R0lGOD')) return 'image/gif';
+  if (base64.startsWith('Qk')) return 'image/bmp';
+  return 'image/png';
+}
+
 function applyNowPlaying(nowPlaying) {
   setText('track-title', nowPlaying.title || '—');
   setText('track-artist', nowPlaying.artist || '—');
-  const artUrl = nowPlaying.art ? `url(data:image/png;base64,${nowPlaying.art})` : '';
+  const artUrl = nowPlaying.art ? `url(data:${sniffImageMime(nowPlaying.art)};base64,${nowPlaying.art})` : '';
   document.querySelectorAll('.art').forEach((el) => { el.style.backgroundImage = artUrl; });
   document.querySelectorAll('[data-key="PlayPause"]').forEach((el) => {
     el.classList.toggle('is-playing', !!nowPlaying.isPlaying);

@@ -1,4 +1,4 @@
-#Requires -Modules AudioDeviceCmdlets
+﻿#Requires -Modules AudioDeviceCmdlets
 
 # The old approach simulated the hardware volume keys via keybd_event, which
 # Windows routes to whatever device the currently-focused app's audio session

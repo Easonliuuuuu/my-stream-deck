@@ -38,6 +38,28 @@ test('runScript rejects with a clear message when stdout is not valid JSON', asy
   await assert.rejects(() => runScript('Fake.ps1'), /Failed to parse PowerShell output from Fake\.ps1/);
 });
 
+test('runScript passes a timeout to execFile so a hung script cannot block forever', async (t) => {
+  let capturedOpts;
+  t.mock.method(cp, 'execFile', (_file, _args, opts, callback) => {
+    capturedOpts = opts;
+    callback(null, '{}', '');
+  });
+
+  await runScript('Fake.ps1');
+
+  assert.ok(capturedOpts.timeout > 0);
+});
+
+test('runScript rejects with a clear "timed out" message when execFile kills the process', async (t) => {
+  t.mock.method(cp, 'execFile', (_file, _args, _opts, callback) => {
+    const err = new Error('killed');
+    err.killed = true;
+    callback(err, '', '');
+  });
+
+  await assert.rejects(() => runScript('Fake.ps1'), /Fake\.ps1 timed out/);
+});
+
 test('runScript passes the script path and extra args through to execFile', async (t) => {
   let capturedArgs;
   t.mock.method(cp, 'execFile', (_file, args, _opts, callback) => {

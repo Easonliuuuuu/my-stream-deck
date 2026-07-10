@@ -1,4 +1,4 @@
-# Reads now-playing metadata from Windows System Media Transport Controls (SMTC).
+﻿# Reads now-playing metadata from Windows System Media Transport Controls (SMTC).
 # This works for whatever app currently holds the media session (Spotify, browser, etc.)
 # without any per-app API/OAuth integration.
 #
@@ -18,26 +18,45 @@ $asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-O
     $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation`1'
   })[0]
 
+# Bounded wait (was Wait(-1), i.e. forever): the WinRT bridge above is a
+# known deadlock risk (see comment at top of file). A permanently hung
+# powershell.exe here used to mean the now-playing poll never recovered on
+# its own — every 1.5s tick just piled up another process. Timing out and
+# throwing lets the caller's try/catch fall back to idle instead.
 function Await($WinRtTask, $ResultType) {
   $asTask = $asTaskGeneric.MakeGenericMethod($ResultType)
   $netTask = $asTask.Invoke($null, @($WinRtTask))
-  $netTask.Wait(-1) | Out-Null
+  if (-not $netTask.Wait(8000)) {
+    throw "WinRT call timed out after 8s"
+  }
   $netTask.Result
 }
 
 [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager, Windows.Media.Control, ContentType = WindowsRuntime] | Out-Null
 [Windows.Storage.Streams.RandomAccessStreamReference, Windows.Storage.Streams, ContentType = WindowsRuntime] | Out-Null
 
-$manager = Await ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager]::RequestAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager])
-$session = $manager.GetCurrentSession()
+# Any of these WinRT calls can throw transiently (session torn down mid-call,
+# app that owned it just exited, etc). Previously an unhandled exception here
+# meant a non-zero exit for the whole script, which the Node side treats as a
+# hard poll failure (see wsHub.js's refreshNowPlaying) — the strip just stays
+# blank forever with nothing surfaced to the user. Degrade to the same empty
+# '{}' idle response a "no session" case already produces instead.
+try {
+  $manager = Await ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager]::RequestAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager])
+  $session = $manager.GetCurrentSession()
 
-if ($null -eq $session) {
+  if ($null -eq $session) {
+    Write-Output '{}'
+    exit
+  }
+
+  $info = Await ($session.TryGetMediaPropertiesAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionMediaProperties])
+  $playback = $session.GetPlaybackInfo()
+}
+catch {
   Write-Output '{}'
   exit
 }
-
-$info = Await ($session.TryGetMediaPropertiesAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionMediaProperties])
-$playback = $session.GetPlaybackInfo()
 
 $artBase64 = $null
 if ($null -ne $info.Thumbnail) {

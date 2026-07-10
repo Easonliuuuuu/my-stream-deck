@@ -128,6 +128,11 @@ function attach(server, runtime) {
             ws.send(JSON.stringify({ type: 'error', message: `Unknown command action: ${msg.action}` }));
         }
       } catch (e) {
+        // Previously silent server-side (only sent to the client's browser
+        // console, which is unreachable on a paired iPhone) — print to the
+        // same terminal running `node index.js` so a failing command is
+        // actually visible where someone would look.
+        console.error(`command '${msg.action}' failed:`, e.message);
         ws.send(JSON.stringify({ type: 'error', message: e.message }));
       }
     });

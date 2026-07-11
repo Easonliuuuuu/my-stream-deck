@@ -230,6 +230,80 @@ test('a button widget with style:"danger" renders with the danger class for dest
   await page.close();
 });
 
+test('Discord panel renders its status row and all three buttons without horizontal overflow', async () => {
+  const page = await newAppPage({ width: 390, height: 844 });
+
+  await openPanelWithFakeData(page, {
+    context: 'ctx-discord-ctl',
+    actionUuid: 'com.streamdeck.discord.control',
+    title: 'Discord',
+    widgets: [
+      { id: 'status', type: 'row', label: 'Status', source: 'status' },
+      { id: 'launch', type: 'button', label: 'Launch / Focus', action: 'launch' },
+      { id: 'toggleMute', type: 'button', label: 'Toggle Mute', action: 'toggleMute' },
+      { id: 'close', type: 'button', label: 'Close Discord', action: 'close', style: 'danger' },
+    ],
+    data: { status: 'Running' },
+  });
+  await page.waitForTimeout(350);
+
+  const panelBody = page.locator('.screen[data-id="panel"] .panel-body');
+  assert.equal(await panelBody.locator('.d-row .v').textContent(), 'Running');
+  const buttons = panelBody.locator('.panel-btn');
+  assert.equal(await buttons.count(), 3);
+  assert.deepEqual(await buttons.allTextContents(), ['Launch / Focus', 'Toggle Mute', 'Close Discord']);
+  assert.ok(await buttons.nth(2).evaluate((el) => el.classList.contains('panel-btn-danger')));
+
+  // The rows/buttons live in one shared card (matching the OBS/Performance
+  // layout), so it should never be wider than the screen — a stray
+  // fixed-width child in a new widget combo is the kind of thing that would
+  // silently blow this out.
+  const overflowsHorizontally = await page.evaluate(
+    () => document.scrollingElement.scrollWidth > document.scrollingElement.clientWidth
+  );
+  assert.equal(overflowsHorizontally, false);
+  await page.close();
+});
+
+test('Steam panel renders both status rows and both buttons', async () => {
+  const page = await newAppPage({ width: 390, height: 844 });
+
+  await openPanelWithFakeData(page, {
+    context: 'ctx-steam-ctl',
+    actionUuid: 'com.streamdeck.steam.control',
+    title: 'Steam',
+    widgets: [
+      { id: 'status', type: 'row', label: 'Status', source: 'status' },
+      { id: 'currentGame', type: 'row', label: 'Now Playing', source: 'currentGame' },
+      { id: 'launch', type: 'button', label: 'Launch / Focus', action: 'launch' },
+      { id: 'close', type: 'button', label: 'Close Steam', action: 'close', style: 'danger' },
+    ],
+    data: { status: 'Running', currentGame: 'Half-Life 3' },
+  });
+  await page.waitForTimeout(350);
+
+  const panelBody = page.locator('.screen[data-id="panel"] .panel-body');
+  const rowValues = await panelBody.locator('.d-row .v').allTextContents();
+  assert.deepEqual(rowValues, ['Running', 'Half-Life 3']);
+  const buttons = panelBody.locator('.panel-btn');
+  assert.equal(await buttons.count(), 2);
+  assert.deepEqual(await buttons.allTextContents(), ['Launch / Focus', 'Close Steam']);
+  await page.close();
+});
+
+test('a server-pushed error shows a dismissible on-screen toast, not just a console log', async () => {
+  const page = await newAppPage({ width: 390, height: 844 });
+
+  await page.evaluate(() => { window.showErrorToast('Set a mute hotkey in this key\'s settings'); });
+  const toast = page.locator('#error-toast');
+  assert.equal(await toast.isHidden(), false);
+  assert.equal(await toast.textContent(), 'Set a mute hotkey in this key\'s settings');
+
+  await page.waitForTimeout(4300);
+  assert.equal(await toast.isHidden(), true);
+  await page.close();
+});
+
 test('a key bound directly to an action with its own panel (no Open Panel indirection) opens that panel', async () => {
   const page = await newAppPage({ width: 390, height: 844 });
 

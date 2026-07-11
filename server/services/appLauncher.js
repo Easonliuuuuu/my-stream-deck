@@ -28,4 +28,11 @@ async function launchApp(id) {
   return runScript('Launch-App.ps1', args);
 }
 
-module.exports = { launchApp, APPS };
+async function getAppStatus(id) {
+  const app = APPS[id];
+  if (!app) throw new Error(`Unknown app: ${id}`);
+  const result = await runScript('Get-AppStatus.ps1', ['-ProcessName', app.processName]);
+  return { running: !!(result && result.running) };
+}
+
+module.exports = { launchApp, getAppStatus, APPS };

@@ -5,7 +5,7 @@
 // lets a future plugin process boundary be a single adapter module instead of
 // a rewrite of every call site.
 
-const SUPPORTED_WIDGETS = new Set(['row', 'picker', 'gauge']);
+const SUPPORTED_WIDGETS = new Set(['row', 'picker', 'gauge', 'button']);
 
 const modules = new Map();
 

@@ -23,6 +23,7 @@
   --glow-spotify: #3ddc84;
   --glow-discord: #7b88f5;
   --glow-steam: #9fb0c3;
+  --glow-obs: #ff6154;
 }
 
 * { box-sizing: border-box; }
@@ -296,6 +297,7 @@ button:focus-visible {
 .app.spotify { --glow: var(--glow-spotify); --ink-icon: #072012; }
 .app.discord { --glow: var(--glow-discord); }
 .app.steam { --glow: var(--glow-steam); --ink-icon: #1b232c; }
+.app.obs { --glow: var(--glow-obs); }
 .app.settings { --glow: var(--warn); --ink-icon: #241a06; }
 .app.default { --glow: var(--azure); }
 .app.folder { --glow: var(--ink-dim); --ink-icon: #14181f; }
@@ -454,6 +456,19 @@ button:focus-visible {
 }
 .load-fill.cpu { background: var(--azure); }
 .load-fill.gpu { background: var(--mint); }
+.load-fill.ram { background: var(--warn); }
+
+.panel-btn {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  font-size: 14px; font-weight: 600; padding: 12px;
+  border-radius: 12px; border: none;
+  background: var(--key-face); color: var(--ink);
+  font-family: inherit;
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+.panel-btn:active { transform: scale(0.97); opacity: 0.8; background: rgba(255, 255, 255, 0.12); }
 
 /* Landscape dashboard — phone docked sideways as a desk display. Persistent
    info panel on the left; a button grid with its own (non-full-screen)
@@ -596,6 +611,7 @@ button:focus-visible {
   .tile.spotify { --glow: var(--glow-spotify); --ink-icon: #072012; }
   .tile.discord { --glow: var(--glow-discord); }
   .tile.steam { --glow: var(--glow-steam); --ink-icon: #1b232c; }
+  .tile.obs { --glow: var(--glow-obs); }
   .tile.settings { --glow: var(--warn); --ink-icon: #241a06; }
   .tile.folder { --glow: var(--ink-dim); --ink-icon: #14181f; }
   .tile.default { --glow: var(--azure); }
@@ -669,6 +685,7 @@ button:focus-visible {
 .kc-spotify { --glow: var(--glow-spotify); --ink-icon: #072012; }
 .kc-discord { --glow: var(--glow-discord); }
 .kc-steam { --glow: var(--glow-steam); --ink-icon: #1b232c; }
+.kc-obs { --glow: var(--glow-obs); }
 .kc-settings { --glow: var(--warn); --ink-icon: #241a06; }
 .kc-default { --glow: var(--azure); }
 

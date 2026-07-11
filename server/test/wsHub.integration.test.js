@@ -22,6 +22,7 @@ function testLayout() {
           '0,0': { context: 'ctx-audio', action: 'com.streamdeck.core.openPanel', settings: { panelOf: 'com.streamdeck.audio.devices' }, state: 0, title: 'Audio' },
           '1,0': { context: 'ctx-spotify', action: 'com.streamdeck.system.launchApp', settings: { appId: 'spotify' }, state: 0, title: 'Spotify' },
           '2,0': { context: 'ctx-discord', action: 'com.streamdeck.system.launchApp', settings: { appId: 'discord' }, state: 0, title: 'Discord' },
+          '0,1': { context: 'ctx-obs', action: 'com.streamdeck.obs.control', settings: { host: '127.0.0.1', port: '4455', password: 'x' }, state: 0, title: 'OBS' },
         },
       },
       'folder-sub': {
@@ -50,6 +51,7 @@ const DEFAULT_MOCKS = {
   'Get-AudioDevices.ps1': { json: { output: { current: 'Speakers', id: 'out-1' }, input: {}, outputs: [{ id: 'out-1', name: 'Speakers' }, { id: 'out-2', name: 'Headphones' }], inputs: [] } },
   'Get-NowPlaying.ps1': { json: {} },
   'Get-SystemLoad.ps1': { json: { cpu: 12, gpu: 34 } },
+  'Get-AppStatus.ps1': { json: { running: false } },
 };
 
 async function startServer() {
@@ -274,6 +276,33 @@ test('panelAction with a stale device id is refused and never reaches Set-AudioD
   const errorReply = await waitFor((m) => m.type === 'error');
   assert.match(errorReply.message, /Unknown output device/);
   assert.equal(setAudioDeviceCalled, false);
+  ws.close();
+});
+
+test('panelAction with a context re-pushes a fresh panel for that key (OBS toggle reflects immediately)', async (t) => {
+  const { OBSWebSocket } = require('obs-websocket-js');
+  let recording = false;
+  t.mock.method(OBSWebSocket.prototype, 'connect', async () => {});
+  t.mock.method(OBSWebSocket.prototype, 'call', async (request) => {
+    if (request === 'ToggleRecord') { recording = !recording; return {}; }
+    if (request === 'GetRecordStatus') return { outputActive: recording, outputPaused: false };
+    if (request === 'GetStreamStatus') return { outputActive: false };
+    return {};
+  });
+  t.mock.method(OBSWebSocket.prototype, 'disconnect', () => {});
+
+  const { port, close } = await startServer();
+  t.after(close);
+
+  const { ws, waitFor } = await connectClient(port);
+  ws.send(JSON.stringify({ type: 'auth', token: config.pairingToken }));
+  await waitFor((m) => m.type === 'auth');
+  await waitFor((m) => m.type === 'snapshot');
+
+  ws.send(JSON.stringify({ type: 'command', action: 'panelAction', context: 'ctx-obs', actionUuid: 'com.streamdeck.obs.control', name: 'toggleRecord', payload: {} }));
+  const panel = await waitFor((m) => m.type === 'panel' && m.context === 'ctx-obs');
+
+  assert.equal(panel.data.recording, 'Recording');
   ws.close();
 });
 

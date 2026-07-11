@@ -174,6 +174,65 @@ test('portrait: home grid opens a panel (server round-trip) and returns home', a
   await page.close();
 });
 
+test('panel button widget sends a panelAction command with its context, actionUuid, and action name', async () => {
+  const page = await newAppPage({ width: 390, height: 844 });
+
+  await page.evaluate(() => {
+    window.state.ws = {
+      readyState: WebSocket.OPEN,
+      send: (raw) => { window.__sent.push(JSON.parse(raw)); },
+    };
+    window.__sent = [];
+  });
+
+  await openPanelWithFakeData(page, {
+    context: 'ctx-obs',
+    actionUuid: 'com.streamdeck.obs.control',
+    title: 'OBS Studio',
+    widgets: [
+      { id: 'recording', type: 'row', label: 'Recording', source: 'recording' },
+      { id: 'toggleRecord', type: 'button', label: 'Start / Stop Recording', action: 'toggleRecord' },
+    ],
+    data: { recording: 'Stopped' },
+  });
+  await page.waitForTimeout(350);
+
+  await page.click('.screen[data-id="panel"] .panel-btn');
+  const sentMessages = await page.evaluate(() => window.__sent);
+  const command = sentMessages.find((m) => m.type === 'command' && m.action === 'panelAction');
+
+  assert.ok(command, 'expected a panelAction command to have been sent');
+  assert.equal(command.context, 'ctx-obs');
+  assert.equal(command.actionUuid, 'com.streamdeck.obs.control');
+  assert.equal(command.name, 'toggleRecord');
+  await page.close();
+});
+
+test('a key bound directly to an action with its own panel (no Open Panel indirection) opens that panel', async () => {
+  const page = await newAppPage({ width: 390, height: 844 });
+
+  await page.evaluate(() => {
+    window.state.layout.folders['folder-root'].keys['2,1'] = {
+      context: 'ctx-obs', action: 'com.streamdeck.obs.control', settings: { host: '127.0.0.1' }, state: 0, title: 'OBS', icon: 'obs', color: 'obs',
+    };
+    window.state.actions.push({ uuid: 'com.streamdeck.obs.control', name: 'OBS Studio', icon: 'obs', settingsSchema: { host: { type: 'text' } }, panel: { title: 'OBS Studio' } });
+    window.renderGrid();
+    window.state.ws = {
+      readyState: WebSocket.OPEN,
+      send: (raw) => {
+        const msg = JSON.parse(raw);
+        if (msg.type === 'command' && msg.action === 'openPanel') {
+          window.handlePanelMessage({ context: msg.context, actionUuid: 'com.streamdeck.obs.control', title: 'OBS Studio', widgets: [], data: {} });
+        }
+      },
+    };
+  });
+
+  await page.click('.app.obs');
+  assert.equal(await page.getAttribute('#stack', 'data-screen'), 'panel');
+  await page.close();
+});
+
 test('landscape: CPU/GPU/Now Focused readout fits the viewport without scrolling', async () => {
   const page = await newAppPage({ width: 844, height: 390 });
   await page.evaluate(() => { window.applySystemLoadChrome({ cpu: 40, gpu: 70, activeApp: 'Test' }); });

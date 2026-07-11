@@ -125,21 +125,31 @@ function createRuntime(initialLayout) {
     if (module.onKeyDown) await module.onKeyDown(makeCtx(context));
   }
 
+  // `panelOf` covers the indirection keys use (an Open Panel key pointing at
+  // e.g. Audio Devices); falling back to the key's own action lets a key
+  // bound directly to a panel-owning action (e.g. OBS Studio, which also
+  // needs its own connection settings) open its own panel with no separate
+  // indirection key required.
   async function openPanel(context) {
     const inst = instances.get(context);
     if (!inst) throw new Error(`Unknown context: ${context}`);
-    const panelOfUuid = inst.settings.panelOf;
+    const panelOfUuid = inst.settings.panelOf || inst.action;
     const module = registry.get(panelOfUuid);
     if (!module || !module.panel) throw new Error(`No panel available for: ${panelOfUuid}`);
-    const data = module.getPanelData ? await module.getPanelData() : {};
+    const data = module.getPanelData ? await module.getPanelData(inst.settings) : {};
     return { context, actionUuid: panelOfUuid, title: module.panel.title, widgets: module.panel.widgets, data };
   }
 
-  async function panelAction(actionUuid, name, payload) {
+  // `context` identifies which key triggered the action, so its settings
+  // (e.g. an OBS key's host/port/password) can be handed to the action —
+  // it's optional since not every panel action needs settings (e.g. Audio's
+  // setOutput reads entirely from its own poller cache).
+  async function panelAction(actionUuid, context, name, payload) {
     const module = registry.get(actionUuid);
     if (!module) throw new Error(`Unregistered action: ${actionUuid}`);
     if (!module.onPanelAction) throw new Error(`Action has no panel actions: ${actionUuid}`);
-    await module.onPanelAction(name, payload);
+    const inst = context ? instances.get(context) : null;
+    await module.onPanelAction(name, payload, inst ? inst.settings : undefined);
   }
 
   function snapshotRenders() {

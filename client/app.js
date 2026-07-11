@@ -643,6 +643,21 @@ function setDisconnectedBanner(visible) {
   status.lastChild.textContent = visible ? 'Reconnecting…' : 'Connected';
 }
 
+let errorToastTimer = null;
+
+// Surfaces a server-pushed error (e.g. a panelAction failure like Discord's
+// Toggle Mute with no hotkey configured) on-screen — a paired phone has no
+// way to see the browser console, so console.error alone left these
+// silent.
+function showErrorToast(message) {
+  const el = document.getElementById('error-toast');
+  if (!el) return;
+  el.textContent = message;
+  el.hidden = false;
+  clearTimeout(errorToastTimer);
+  errorToastTimer = setTimeout(() => { el.hidden = true; }, 4000);
+}
+
 function connect(server, token) {
   const ws = new WebSocket(`ws://${server}`);
   state.ws = ws;
@@ -706,6 +721,7 @@ function connect(server, token) {
 
     if (msg.type === 'error') {
       console.error('Server error:', msg.message);
+      showErrorToast(msg.message);
     }
   });
 

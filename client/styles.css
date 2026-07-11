@@ -125,6 +125,28 @@ button:focus-visible {
   margin-bottom: 14px;
 }
 
+/* Fixed so it surfaces over whichever screen (grid/panel/settings) or
+   orientation is currently showing — a panelAction failure (e.g. Discord's
+   Toggle Mute with no hotkey configured) previously only logged to the
+   browser console, which a paired phone never shows. Plain hidden-attribute
+   toggle (no fade transition), matching #disconnected-banner's convention. */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
+  transform: translateX(-50%);
+  z-index: 50;
+  max-width: min(88vw, 420px);
+  background: rgba(226, 76, 76, 0.94);
+  color: #fff;
+  padding: 11px 18px;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
 .top {
   display: flex;
   align-items: center;

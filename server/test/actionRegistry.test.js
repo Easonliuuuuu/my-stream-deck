@@ -25,6 +25,17 @@ test('unsupported panel widget type is refused at registration', () => {
   }), /unsupported widget type/);
 });
 
+test('button is a supported panel widget type', () => {
+  registry.clear();
+  assert.doesNotThrow(() => registry.register({
+    uuid: 'com.test.button',
+    name: 'Button',
+    icon: 'x',
+    states: [{}],
+    panel: { title: 'Button', widgets: [{ id: 'go', type: 'button', label: 'Go', action: 'go' }] },
+  }));
+});
+
 test('registered action is retrievable by uuid and appears in all()', () => {
   registry.clear();
   registry.register({ uuid: 'com.test.d', name: 'D', icon: 'x', states: [{}] });

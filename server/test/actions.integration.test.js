@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const cp = require('child_process');
 const path = require('path');
+const { OBSWebSocket } = require('obs-websocket-js');
 
 const registry = require('../actionRegistry');
 registry.clear();
@@ -113,4 +114,45 @@ test('an openPanel key inherits its target action\'s live subtitle on its own co
   const subtitleMsg = renders.find((m) => m.context === 'ctx-perf-panel' && 'subtitle' in m);
   assert.ok(subtitleMsg, 'expected the openPanel key to receive a forwarded subtitle push');
   assert.equal(subtitleMsg.subtitle, 'CPU 55%');
+});
+
+test('launchApp key shows a "Running" subtitle while its process is running, and clears it when not', async (t) => {
+  mockPowerShell(t, { 'Get-AppStatus.ps1': { running: true } });
+  const layout = layoutWithOneOf('com.streamdeck.system.launchApp');
+  layout.folders['folder-root'].keys['0,0'].settings = { appId: 'spotify' };
+
+  const runtime = createRuntime(layout);
+  t.after(() => runtime.setVisibleContexts([]));
+  const renders = [];
+  runtime.onRender((m) => renders.push(m));
+  await new Promise((r) => setImmediate(r));
+
+  const subtitleMsg = renders.find((m) => m.context === 'ctx-1' && 'subtitle' in m);
+  assert.ok(subtitleMsg);
+  assert.equal(subtitleMsg.subtitle, 'Running');
+});
+
+test('OBS Studio key opens its own panel directly (no Open Panel indirection key needed)', async (t) => {
+  t.mock.method(OBSWebSocket.prototype, 'connect', async () => {});
+  t.mock.method(OBSWebSocket.prototype, 'call', async (request) => {
+    if (request === 'GetRecordStatus') return { outputActive: true, outputPaused: false };
+    if (request === 'GetStreamStatus') return { outputActive: false };
+    return {};
+  });
+  t.mock.method(OBSWebSocket.prototype, 'disconnect', () => {});
+
+  const layout = layoutWithOneOf('com.streamdeck.obs.control');
+  layout.folders['folder-root'].keys['0,0'].settings = { host: '127.0.0.1', port: '4455', password: 'x' };
+  const runtime = createRuntime(layout);
+  t.after(() => runtime.setVisibleContexts([]));
+
+  const panel = await runtime.openPanel('ctx-1');
+  assert.equal(panel.actionUuid, 'com.streamdeck.obs.control');
+  assert.equal(panel.data.connection, 'Connected');
+  assert.equal(panel.data.recording, 'Recording');
+  assert.equal(panel.data.streaming, 'Offline');
+
+  await runtime.panelAction('com.streamdeck.obs.control', 'ctx-1', 'toggleRecord', {});
+  const callNames = OBSWebSocket.prototype.call.mock.calls.map((c) => c.arguments[0]);
+  assert.ok(callNames.includes('ToggleRecord'));
 });

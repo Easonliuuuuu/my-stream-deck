@@ -6,3 +6,4 @@ require('./system');
 require('./audio');
 require('./controller');
 require('./performance');
+require('./obs');

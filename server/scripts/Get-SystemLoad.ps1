@@ -10,6 +10,25 @@ if ($gpuSamples) {
   if ($gpu -gt 100) { $gpu = 100 }
 }
 
+$os = Get-CimInstance Win32_OperatingSystem
+# TotalVisibleMemorySize/FreePhysicalMemory are reported in KB; KB / (1024*1024) = GB.
+$ramTotalGB = [math]::Round($os.TotalVisibleMemorySize / 1MB, 1)
+$ramUsedGB = [math]::Round(($os.TotalVisibleMemorySize - $os.FreePhysicalMemory) / 1MB, 1)
+$ramPct = if ($os.TotalVisibleMemorySize -gt 0) {
+  [math]::Round((($os.TotalVisibleMemorySize - $os.FreePhysicalMemory) / $os.TotalVisibleMemorySize) * 100)
+} else { 0 }
+$uptimeSeconds = [math]::Round((New-TimeSpan -Start $os.LastBootUpTime -End (Get-Date)).TotalSeconds)
+
+# Bytes Total/sec is an instantaneous rate (no second sample needed); exclude
+# virtual/loopback adapters so a VPN or Hyper-V vSwitch doesn't inflate it.
+$netSamples = (Get-Counter '\Network Interface(*)\Bytes Total/sec' -ErrorAction SilentlyContinue).CounterSamples
+$netBytesPerSec = 0
+if ($netSamples) {
+  $netBytesPerSec = ($netSamples |
+    Where-Object { $_.InstanceName -notmatch 'isatap|Loopback|Teredo|vEthernet' } |
+    Measure-Object -Property CookedValue -Sum).Sum
+}
+
 Add-Type @"
 using System;
 using System.Runtime.InteropServices;
@@ -40,4 +59,9 @@ try {
   cpu = [math]::Round($cpu)
   gpu = [math]::Round($gpu)
   activeApp = $activeApp
+  ramPct = $ramPct
+  ramUsedGB = $ramUsedGB
+  ramTotalGB = $ramTotalGB
+  uptimeSeconds = $uptimeSeconds
+  netBytesPerSec = [math]::Round($netBytesPerSec)
 } | ConvertTo-Json -Compress

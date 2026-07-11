@@ -8,5 +8,6 @@ module.exports = {
     nowPlayingMs: 1500,
     controllerMs: 20000,
     systemLoadMs: 2500,
+    appStatusMs: 5000,
   },
 };

@@ -116,7 +116,19 @@ function attach(server, runtime) {
             break;
           }
           case 'panelAction':
-            await runtime.panelAction(msg.actionUuid, msg.name, msg.payload);
+            await runtime.panelAction(msg.actionUuid, msg.context, msg.name, msg.payload);
+            // Re-push the panel the action was taken from (when the client told
+            // us which key it came from) so status rows — e.g. OBS's
+            // Recording/Streaming state after a toggle — reflect the change
+            // immediately instead of only on next manual reopen.
+            if (msg.context) {
+              try {
+                const panel = await runtime.openPanel(msg.context);
+                ws.send(JSON.stringify({ type: 'panel', ...panel }));
+              } catch (e) {
+                console.error('panel refresh after panelAction failed:', e.message);
+              }
+            }
             break;
           case 'setVisibleContexts':
             await runtime.setVisibleContexts(msg.contexts || []);

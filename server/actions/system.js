@@ -1,10 +1,27 @@
 const { register } = require('../actionRegistry');
-const { launchApp } = require('../services/appLauncher');
+const { launchApp, getAppStatus, APPS } = require('../services/appLauncher');
 const { invokeSystemAction } = require('../services/systemAction');
+const { createPoller } = require('./pollHelper');
+const config = require('../config');
+
+// One poller per app id (not one shared poller, since each key instance can
+// name a different appId via settings) — created lazily so an app nobody has
+// bound a key to never gets polled.
+const appPollers = new Map();
+function pollerForApp(appId) {
+  if (!appPollers.has(appId)) {
+    appPollers.set(appId, createPoller(
+      () => getAppStatus(appId),
+      config.poll.appStatusMs,
+      (ctx, state) => ctx.setSubtitle(state.running ? 'Running' : ''),
+    ));
+  }
+  return appPollers.get(appId);
+}
 
 // Title/icon are static per instance (set from the key's own `title`/`icon`
-// fields, e.g. "Spotify" with the spotify icon) — these actions never push a
-// render, they only react to activation.
+// fields, e.g. "Spotify" with the spotify icon) — only the subtitle (the
+// running-indicator) is pushed live.
 register({
   uuid: 'com.streamdeck.system.launchApp',
   name: 'Launch App',
@@ -12,6 +29,12 @@ register({
   states: [{}],
   settingsSchema: {
     appId: { type: 'text' },
+  },
+  onWillAppear(ctx) {
+    if (APPS[ctx.settings.appId]) pollerForApp(ctx.settings.appId).attach(ctx);
+  },
+  onWillDisappear(ctx) {
+    if (APPS[ctx.settings.appId]) pollerForApp(ctx.settings.appId).detach(ctx);
   },
   async onKeyDown(ctx) {
     await launchApp(ctx.settings.appId);

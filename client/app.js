@@ -42,6 +42,7 @@ const ICONS = {
   spotify:     '<path d="M7 15V9"/><path d="M12 17V7"/><path d="M17 13v-2"/>',
   discord:     '<path d="M5 5h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H10l-4 3.5V15H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/>',
   steam:       '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+  obs:         '<rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.4"/><path d="M7 6l2-3h6l2 3"/>',
   settings:    '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1-.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
   lock:        '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
   sleep:       '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
@@ -51,7 +52,7 @@ const ICONS = {
 };
 
 const ICON_NAMES    = Object.keys(ICONS);
-const COLOR_OPTIONS = ['audio', 'controller', 'performance', 'spotify', 'discord', 'steam', 'folder', 'default'];
+const COLOR_OPTIONS = ['audio', 'controller', 'performance', 'spotify', 'discord', 'steam', 'obs', 'folder', 'default'];
 
 let settingsMessage = null;
 
@@ -159,12 +160,18 @@ function handleKeyActivate(key) {
     navigateToFolder(key.settings.folderId);
     return;
   }
-  if (key.action === 'com.streamdeck.core.openPanel') {
-    sendCommand({ action: 'openPanel', context: key.context });
-    return;
-  }
   if (key.action === 'com.streamdeck.core.settings') {
     openSettingsScreen();
+    return;
+  }
+  // core.openPanel is the indirection case (a key pointing at another
+  // action's panel via settings.panelOf); a key can also be bound directly
+  // to an action that owns its own panel (e.g. OBS Studio, whose connection
+  // settings live on that same key) — the server resolves either via the
+  // same openPanel command.
+  const meta = actionMeta(key.action);
+  if (key.action === 'com.streamdeck.core.openPanel' || meta?.panel) {
+    sendCommand({ action: 'openPanel', context: key.context });
     return;
   }
   sendCommand({ action: 'keyDown', context: key.context });
@@ -281,7 +288,7 @@ function renderWidget(widget, data) {
   }
   if (widget.type === 'gauge') {
     const value = data?.[widget.source] ?? 0;
-    const cls = /gpu/i.test(widget.id) ? 'gpu' : 'cpu';
+    const cls = /gpu/i.test(widget.id) ? 'gpu' : /ram/i.test(widget.id) ? 'ram' : 'cpu';
     return `
       <div class="load-row">
         <div class="load-label"><span class="k">${esc(widget.label)}</span><span class="v">${esc(value)}%</span></div>
@@ -297,10 +304,13 @@ function renderWidget(widget, data) {
       </button>`).join('');
     return `<div class="picker" data-onselect="${esc(widget.onSelect)}">${items}</div>`;
   }
+  if (widget.type === 'button') {
+    return `<button class="panel-btn" data-panel-action="${esc(widget.action)}">${esc(widget.label)}</button>`;
+  }
   return '';
 }
 
-// Consecutive row/gauge widgets share one card (matching the original
+// Consecutive row/gauge/button widgets share one card (matching the original
 // hand-written detail screens, e.g. Performance's CPU+GPU+Now-Focused card);
 // each picker widget gets its own card (matching Audio's separate
 // output/input cards).
@@ -326,10 +336,23 @@ function attachPanelHandlers(container) {
       btn.addEventListener('click', () => {
         sendCommand({
           action: 'panelAction',
+          context: state.currentPanel.context,
           actionUuid: state.currentPanel.actionUuid,
           name: pickerEl.dataset.onselect,
           payload: { id: btn.dataset.pickerId },
         });
+      });
+    });
+  });
+
+  container.querySelectorAll('[data-panel-action]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      sendCommand({
+        action: 'panelAction',
+        context: state.currentPanel.context,
+        actionUuid: state.currentPanel.actionUuid,
+        name: btn.dataset.panelAction,
+        payload: {},
       });
     });
   });

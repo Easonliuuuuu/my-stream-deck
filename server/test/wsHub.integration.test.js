@@ -23,6 +23,8 @@ function testLayout() {
           '1,0': { context: 'ctx-spotify', action: 'com.streamdeck.system.launchApp', settings: { appId: 'spotify' }, state: 0, title: 'Spotify' },
           '2,0': { context: 'ctx-discord', action: 'com.streamdeck.system.launchApp', settings: { appId: 'discord' }, state: 0, title: 'Discord' },
           '0,1': { context: 'ctx-obs', action: 'com.streamdeck.obs.control', settings: { host: '127.0.0.1', port: '4455', password: 'x' }, state: 0, title: 'OBS' },
+          '1,1': { context: 'ctx-discord-ctl', action: 'com.streamdeck.discord.control', settings: { muteHotkey: 'Ctrl+Shift+M' }, state: 0, title: 'Discord Control' },
+          '2,1': { context: 'ctx-steam-ctl', action: 'com.streamdeck.steam.control', settings: {}, state: 0, title: 'Steam Control' },
         },
       },
       'folder-sub': {
@@ -52,6 +54,7 @@ const DEFAULT_MOCKS = {
   'Get-NowPlaying.ps1': { json: {} },
   'Get-SystemLoad.ps1': { json: { cpu: 12, gpu: 34 } },
   'Get-AppStatus.ps1': { json: { running: false } },
+  'Get-SteamStatus.ps1': { json: { runningAppId: 0, gameName: null } },
 };
 
 async function startServer() {
@@ -303,6 +306,29 @@ test('panelAction with a context re-pushes a fresh panel for that key (OBS toggl
   const panel = await waitFor((m) => m.type === 'panel' && m.context === 'ctx-obs');
 
   assert.equal(panel.data.recording, 'Recording');
+  ws.close();
+});
+
+test('Discord Close/Toggle Mute panel round-trip via the real ws protocol', async (t) => {
+  t.mock.method(cp, 'execFile', (_file, args, _opts, callback) => {
+    const scriptName = path.basename(args[args.indexOf('-File') + 1]);
+    if (scriptName === 'Send-Hotkey.ps1') return callback(null, '{"ok":true}', '');
+    const mock = DEFAULT_MOCKS[scriptName];
+    callback(null, JSON.stringify(mock ? mock.json : {}), '');
+  });
+
+  const { port, close } = await startServer();
+  t.after(close);
+
+  const { ws, waitFor } = await connectClient(port);
+  ws.send(JSON.stringify({ type: 'auth', token: config.pairingToken }));
+  await waitFor((m) => m.type === 'auth');
+  await waitFor((m) => m.type === 'snapshot');
+
+  ws.send(JSON.stringify({ type: 'command', action: 'panelAction', context: 'ctx-discord-ctl', actionUuid: 'com.streamdeck.discord.control', name: 'toggleMute', payload: {} }));
+  const panel = await waitFor((m) => m.type === 'panel' && m.context === 'ctx-discord-ctl');
+
+  assert.equal(panel.data.status, 'Not running');
   ws.close();
 });
 

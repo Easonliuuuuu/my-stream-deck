@@ -208,6 +208,28 @@ test('panel button widget sends a panelAction command with its context, actionUu
   await page.close();
 });
 
+test('a button widget with style:"danger" renders with the danger class for destructive actions', async () => {
+  const page = await newAppPage({ width: 390, height: 844 });
+
+  await openPanelWithFakeData(page, {
+    context: 'ctx-discord-ctl',
+    actionUuid: 'com.streamdeck.discord.control',
+    title: 'Discord',
+    widgets: [
+      { id: 'close', type: 'button', label: 'Close Discord', action: 'close', style: 'danger' },
+      { id: 'launch', type: 'button', label: 'Launch / Focus', action: 'launch' },
+    ],
+    data: {},
+  });
+  await page.waitForTimeout(350);
+
+  const buttons = page.locator('.screen[data-id="panel"] .panel-btn');
+  assert.equal(await buttons.count(), 2);
+  assert.ok(await buttons.nth(0).evaluate((el) => el.classList.contains('panel-btn-danger')));
+  assert.ok(!(await buttons.nth(1).evaluate((el) => el.classList.contains('panel-btn-danger'))));
+  await page.close();
+});
+
 test('a key bound directly to an action with its own panel (no Open Panel indirection) opens that panel', async () => {
   const page = await newAppPage({ width: 390, height: 844 });
 

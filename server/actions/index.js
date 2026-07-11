@@ -7,3 +7,5 @@ require('./audio');
 require('./controller');
 require('./performance');
 require('./obs');
+require('./discord');
+require('./steam');

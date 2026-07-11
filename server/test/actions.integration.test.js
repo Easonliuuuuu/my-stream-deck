@@ -156,3 +156,149 @@ test('OBS Studio key opens its own panel directly (no Open Panel indirection key
   const callNames = OBSWebSocket.prototype.call.mock.calls.map((c) => c.arguments[0]);
   assert.ok(callNames.includes('ToggleRecord'));
 });
+
+test('Discord key opens its own panel and reports running status', async (t) => {
+  mockPowerShell(t, { 'Get-AppStatus.ps1': { running: true } });
+  const layout = layoutWithOneOf('com.streamdeck.discord.control');
+  layout.folders['folder-root'].keys['0,0'].settings = { muteHotkey: 'Ctrl+Shift+M' };
+  const runtime = createRuntime(layout);
+  t.after(() => runtime.setVisibleContexts([]));
+
+  const panel = await runtime.openPanel('ctx-1');
+  assert.equal(panel.actionUuid, 'com.streamdeck.discord.control');
+  assert.equal(panel.data.status, 'Running');
+});
+
+test('Discord close button force-kills every process named Discord', async (t) => {
+  let killArgs = null;
+  t.mock.method(cp, 'execFile', (_file, args, _opts, callback) => {
+    const scriptName = path.basename(args[args.indexOf('-File') + 1]);
+    if (scriptName === 'Stop-ProcessByName.ps1') {
+      killArgs = args;
+      return callback(null, '{"ok":true}', '');
+    }
+    callback(null, '{}', '');
+  });
+
+  const layout = layoutWithOneOf('com.streamdeck.discord.control');
+  const runtime = createRuntime(layout);
+  t.after(() => runtime.setVisibleContexts([]));
+
+  await runtime.panelAction('com.streamdeck.discord.control', 'ctx-1', 'close', {});
+  assert.ok(killArgs.includes('-ProcessName'));
+  assert.ok(killArgs.includes('Discord'));
+});
+
+test('Discord toggle-mute sends the configured hotkey combo', async (t) => {
+  let hotkeyArgs = null;
+  t.mock.method(cp, 'execFile', (_file, args, _opts, callback) => {
+    const scriptName = path.basename(args[args.indexOf('-File') + 1]);
+    if (scriptName === 'Send-Hotkey.ps1') {
+      hotkeyArgs = args;
+      return callback(null, '{"ok":true}', '');
+    }
+    callback(null, '{}', '');
+  });
+
+  const layout = layoutWithOneOf('com.streamdeck.discord.control');
+  layout.folders['folder-root'].keys['0,0'].settings = { muteHotkey: 'Ctrl+Shift+M' };
+  const runtime = createRuntime(layout);
+  t.after(() => runtime.setVisibleContexts([]));
+
+  await runtime.panelAction('com.streamdeck.discord.control', 'ctx-1', 'toggleMute', {});
+  assert.ok(hotkeyArgs.includes('-Combo'));
+  assert.ok(hotkeyArgs.includes('Ctrl+Shift+M'));
+});
+
+test('Discord toggle-mute refuses to run when no hotkey is configured', async (t) => {
+  mockPowerShell(t, {});
+  const layout = layoutWithOneOf('com.streamdeck.discord.control');
+  const runtime = createRuntime(layout);
+  t.after(() => runtime.setVisibleContexts([]));
+
+  await assert.rejects(
+    () => runtime.panelAction('com.streamdeck.discord.control', 'ctx-1', 'toggleMute', {}),
+    /mute hotkey/i
+  );
+});
+
+test('Steam key reports the currently-running game by name', async (t) => {
+  mockPowerShell(t, {
+    'Get-AppStatus.ps1': { running: true },
+    'Get-SteamStatus.ps1': { runningAppId: 228980, gameName: 'Steamworks Common Redistributables' },
+  });
+  const layout = layoutWithOneOf('com.streamdeck.steam.control');
+  const runtime = createRuntime(layout);
+  t.after(() => runtime.setVisibleContexts([]));
+
+  const panel = await runtime.openPanel('ctx-1');
+  assert.equal(panel.data.status, 'Running');
+  assert.equal(panel.data.currentGame, 'Steamworks Common Redistributables');
+});
+
+test('Steam key falls back to the raw app id when the manifest name is unresolved', async (t) => {
+  mockPowerShell(t, {
+    'Get-AppStatus.ps1': { running: true },
+    'Get-SteamStatus.ps1': { runningAppId: 12345, gameName: null },
+  });
+  const layout = layoutWithOneOf('com.streamdeck.steam.control');
+  const runtime = createRuntime(layout);
+  t.after(() => runtime.setVisibleContexts([]));
+
+  const panel = await runtime.openPanel('ctx-1');
+  assert.equal(panel.data.currentGame, 'App 12345');
+});
+
+test('Steam key shows "None" when no game is running', async (t) => {
+  mockPowerShell(t, {
+    'Get-AppStatus.ps1': { running: true },
+    'Get-SteamStatus.ps1': { runningAppId: 0, gameName: null },
+  });
+  const layout = layoutWithOneOf('com.streamdeck.steam.control');
+  const runtime = createRuntime(layout);
+  t.after(() => runtime.setVisibleContexts([]));
+
+  const panel = await runtime.openPanel('ctx-1');
+  assert.equal(panel.data.currentGame, 'None');
+});
+
+test('Steam close button shuts down via the -shutdown flag, not a force-kill', async (t) => {
+  let shutdownArgs = null;
+  t.mock.method(cp, 'execFile', (_file, args, _opts, callback) => {
+    const scriptName = path.basename(args[args.indexOf('-File') + 1]);
+    if (scriptName === 'Close-Steam.ps1') {
+      shutdownArgs = args;
+      return callback(null, '{"ok":true}', '');
+    }
+    callback(null, '{}', '');
+  });
+
+  const layout = layoutWithOneOf('com.streamdeck.steam.control');
+  const runtime = createRuntime(layout);
+  t.after(() => runtime.setVisibleContexts([]));
+
+  await runtime.panelAction('com.streamdeck.steam.control', 'ctx-1', 'close', {});
+  assert.ok(shutdownArgs.includes('-Path'));
+  assert.ok(shutdownArgs.some((a) => a.toLowerCase().includes('steam.exe')));
+});
+
+test('screenshot system action invokes Invoke-SystemAction.ps1 with -Action screenshot', async (t) => {
+  let sysArgs = null;
+  t.mock.method(cp, 'execFile', (_file, args, _opts, callback) => {
+    const scriptName = path.basename(args[args.indexOf('-File') + 1]);
+    if (scriptName === 'Invoke-SystemAction.ps1') {
+      sysArgs = args;
+      return callback(null, '', '');
+    }
+    callback(null, '{}', '');
+  });
+
+  const layout = layoutWithOneOf('com.streamdeck.system.action');
+  layout.folders['folder-root'].keys['0,0'].settings = { action: 'screenshot' };
+  const runtime = createRuntime(layout);
+  t.after(() => runtime.setVisibleContexts([]));
+
+  await runtime.keyDown('ctx-1');
+  assert.ok(sysArgs.includes('-Action'));
+  assert.ok(sysArgs.includes('screenshot'));
+});

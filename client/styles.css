@@ -469,6 +469,8 @@ button:focus-visible {
   transition: transform 0.1s ease, opacity 0.1s ease;
 }
 .panel-btn:active { transform: scale(0.97); opacity: 0.8; background: rgba(255, 255, 255, 0.12); }
+.panel-btn-danger { background: rgba(226, 76, 76, 0.16); color: #ff9a8b; }
+.panel-btn-danger:active { background: rgba(226, 76, 76, 0.28); }
 
 /* Landscape dashboard — phone docked sideways as a desk display. Persistent
    info panel on the left; a button grid with its own (non-full-screen)

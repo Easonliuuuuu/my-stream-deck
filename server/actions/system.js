@@ -1,23 +1,7 @@
 const { register } = require('../actionRegistry');
-const { launchApp, getAppStatus, APPS } = require('../services/appLauncher');
+const { launchApp, APPS } = require('../services/appLauncher');
 const { invokeSystemAction } = require('../services/systemAction');
-const { createPoller } = require('./pollHelper');
-const config = require('../config');
-
-// One poller per app id (not one shared poller, since each key instance can
-// name a different appId via settings) — created lazily so an app nobody has
-// bound a key to never gets polled.
-const appPollers = new Map();
-function pollerForApp(appId) {
-  if (!appPollers.has(appId)) {
-    appPollers.set(appId, createPoller(
-      () => getAppStatus(appId),
-      config.poll.appStatusMs,
-      (ctx, state) => ctx.setSubtitle(state.running ? 'Running' : ''),
-    ));
-  }
-  return appPollers.get(appId);
-}
+const { pollerForApp } = require('./appStatusPoller');
 
 // Title/icon are static per instance (set from the key's own `title`/`icon`
 // fields, e.g. "Spotify" with the spotify icon) — only the subtitle (the
@@ -47,7 +31,7 @@ register({
   icon: 'lock',
   states: [{}],
   settingsSchema: {
-    action: { type: 'select', options: ['lock', 'sleep'] },
+    action: { type: 'select', options: ['lock', 'sleep', 'screenshot'] },
   },
   async onKeyDown(ctx) {
     await invokeSystemAction(ctx.settings.action);
